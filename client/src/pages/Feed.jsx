@@ -17,6 +17,10 @@ import Slider from "react-slick";
 import ImageCarousel from "../components/ImageCarousel";
 import { likeRequest } from "../services/like";
 import debounce from "lodash/debounce";
+import { addComment, getComments } from "../services/comment";
+import { showError } from "../utils/toast";
+import CommentModal from "../components/CommentModal";
+import Sidebar from "../components/Sidebar";
 const Feed = () => {
   const [posts, setPosts] = useState([]);
   const { user } = useSelector((state) => state.auth);
@@ -29,9 +33,11 @@ const Feed = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("loading..");
   const [animate, setAnimate] = useState(false);
+  // for comments
+  const [activePost, setActivePost] = useState(null);
   // Add new post to feed
   const [likes, setLikes] = useState(0);
-  const [liked, setLiked] = useState(post.likes.includes(user?._id));
+  const [liked, setLiked] = useState(0);
   // Fetch all posts initially
 
   const sendLikeRequest = useCallback(
@@ -101,12 +107,10 @@ const Feed = () => {
   if (loading) {
     return <Loader message={message} loading={loading} />
   }
-  const heartClass = liked
-    ? 'text-red-500 fill-red-500 animate-pulseHeart'
-    : 'text-gray-400';
   return (
     <div className="max-w-2xl mx-auto mt-6 p-4 space-y-6">
       {/* Create Post Section */}
+      <Sidebar />
       <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5 shadow-sm">
         <div className="flex gap-3 mb-4">
           <img
@@ -220,7 +224,7 @@ const Feed = () => {
                     <img
                       src={postItem.images[0].url}
                       alt="post"
-                      className="w-full h-auto object-cover group-hover:scale-[1.02] transition-transform duration-300"
+                      className="w-full h-auto"
                     />
                   </div>
                 ) : (
@@ -248,10 +252,16 @@ const Feed = () => {
                   'text-red-500 fill-red-500 animate-pulseHeart'
                   : 'text-gray-400'}`}>
                 <Heart size={18} /> <span>{postItem.likes?.length || likes}</span> </button>
-              <button className="flex items-center gap-1 hover:text-blue-500 transition">
+              <button
+                className="flex items-center gap-1 hover:text-blue-500 transition"
+                onClick={() =>
+                  setActivePost(postItem)
+                }
+              >
                 <MessageCircle size={18} />
                 <span>{postItem.comments?.length || 0}</span>
               </button>
+
               <button className="flex items-center gap-1 hover:text-green-500 transition">
                 <Share2 size={18} />
               </button>
@@ -259,6 +269,13 @@ const Feed = () => {
           </div>
         </div>
       ))}
+
+      {activePost && (
+        <CommentModal
+          post={activePost}
+          onClose={() => setActivePost(null)}
+        />
+      )}
 
       {/* Fullscreen Image Modal */}
       {selectedImage && (

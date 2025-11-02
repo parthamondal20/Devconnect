@@ -1,4 +1,5 @@
 import api from "../api/axios";
+
 const githubLogin = async () => {
   try {
     const res = await api.get("/auth/github");
@@ -7,6 +8,16 @@ const githubLogin = async () => {
     throw error;
   }
 };
+
+const googleLogin = async () => {
+  try {
+    const res = await api.get("/auth/google");
+    return res;
+  } catch (error) {
+    throw error;
+  }
+}
+
 const logout = async (user_id) => {
   try {
     await api.post("/auth/logout", {
@@ -71,4 +82,4 @@ const signin = async (email, password) => {
     throw error;
   }
 };
-export { githubLogin, logout, sendOTP, verifyOTP, signup, signin, resendOTP };
+export { githubLogin, googleLogin, logout, sendOTP, verifyOTP, signup, signin, resendOTP };

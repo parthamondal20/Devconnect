@@ -13,23 +13,23 @@ const SignIn = () => {
     const [password, setPassword] = useState("");
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
-    const [message,setMessage]=useState("Logging in with github...");
+    const [message, setMessage] = useState("Logging in with github...");
     const dispatch = useDispatch();
-    const handleEmailLogin = async(e) => {
+    const handleEmailLogin = async (e) => {
         e.preventDefault();
         // TODO: call backend API for JWT login
         try {
             setLoading(true);
             setMessage(`Signing in to ${email}`);
-            const user=await signin(email,password);
+            const user = await signin(email, password);
             dispatch(setUser(user));
-            navigate("/feed",{
-                replace:true
+            navigate("/feed", {
+                replace: true
             })
         } catch (error) {
             console.log(error);
             showError(error?.response?.data?.message);
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
@@ -57,8 +57,6 @@ const SignIn = () => {
                     const data = await getUser(); // backend reads cookie
                     dispatch(setUser(data));
                     showSuccess("Logged in successfully");
-                    // Replace signin page in history and navigate to feed
-                    window.history.replaceState({}, "", "/feed");
                     navigate("/feed", { replace: true });
                 } catch (err) {
                     console.log(err);

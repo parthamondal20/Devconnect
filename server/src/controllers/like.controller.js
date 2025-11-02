@@ -11,7 +11,7 @@ const likePost = asyncHandler(async (req, res) => {
     throw new ApiError(200, "Post not found");
   }
 
-  const userId = req.user.id;
+  const userId = req.user._id;
 
   if (post.likes.includes(userId)) {
     // If already liked, remove the like

@@ -1,12 +1,15 @@
 import { createClient } from "redis";
 
 const client = createClient({
-  url: "redis://127.0.0.1:6379",
+  socket: {
+    host: process.env.REDIS_HOST, // "redis" in Docker
+    port: process.env.REDIS_PORT,
+  },
 });
 
 client.on("error", (err) => console.error("❌ Redis Error:", err));
 client.on("connect", () => console.log("✅ Redis connected"));
 
-await client.connect();
+// await client.connect();
 
 export default client;

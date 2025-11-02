@@ -13,7 +13,7 @@ import Loader from "../components/Loader";
 import { showSuccess, showError } from "../utils/toast.js";
 import { useDispatch } from "react-redux";
 import { setPost } from "../features/postSlice.js";
-import React, { useState, useRef, useEffect, lazy, Suspense } from "react";
+import { useState, useRef, useEffect, lazy, Suspense } from "react";
 const EmojiPicker = lazy(() => import("emoji-picker-react"));
 
 const PostModal = ({ isOpen, onClose, user }) => {
@@ -137,12 +137,12 @@ const PostModal = ({ isOpen, onClose, user }) => {
           {selectedImages.length > 0 && (
             <div
               className={`p-5 grid gap-3 ${selectedImages.length === 1
-                  ? "grid-cols-1"
-                  : selectedImages.length === 2
-                    ? "grid-cols-2"
-                    : selectedImages.length === 3
-                      ? "grid-cols-3"
-                      : "grid-cols-3 sm:grid-cols-4"
+                ? "grid-cols-1"
+                : selectedImages.length === 2
+                  ? "grid-cols-2"
+                  : selectedImages.length === 3
+                    ? "grid-cols-3"
+                    : "grid-cols-3 sm:grid-cols-4"
                 }`}
             >
               {selectedImages.map((img, index) => (

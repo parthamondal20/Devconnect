@@ -1,11 +1,12 @@
-import axios from "axios";
-
-const API = axios.create({
-  baseURL: "http://localhost:5000/api/chatbot",
-  withCredentials: true,
-});
+import api from "../api/axios.js";
 
 export const askAI = async (query) => {
-  const res = await API.post("/", { query });
-  return res.data;
+  try {
+    const res = await api.post("/chatbot/chat", {
+      query
+    })
+    return res.data.data;
+  } catch (error) {
+    throw error;
+  }
 };

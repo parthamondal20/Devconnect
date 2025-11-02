@@ -19,16 +19,16 @@ const Home = () => {
             {/* CTA Buttons */}
             <div className="flex gap-4">
                 <Link
-                    to="/feed"
+                    to="/signup"
                     className="px-6 py-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium hover:opacity-90 transition"
                 >
-                    Explore Feed
+                    Sign up
                 </Link>
                 <Link
-                    to="/signup"
+                    to="/signin"
                     className="px-6 py-3 rounded-full border border-blue-500 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-800 transition font-medium"
                 >
-                    Join Now
+                    Sign in
                 </Link>
             </div>
 

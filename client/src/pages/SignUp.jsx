@@ -4,15 +4,18 @@ import { Mail, Lock } from "lucide-react";
 import githubLogo from "../assets/github.svg"
 import linkedinLogo from "../assets/linkedin.svg"
 import { githubLogin, sendOTP } from "../services/auth";
-import { Navigate } from "react-router-dom";
 import Loader from "../components/Loader";
 import { useSelector } from "react-redux";
-import { showError } from "../utils/toast";
+import { setUser } from "../features/authSlice";
+import { showError, showSuccess } from "../utils/toast";
+import { useDispatch } from "react-redux";
+import { getUser } from "../services/user";
 const SignUp = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [username, setUsername] = useState("");
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const [show, setShow] = useState(false);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("Loading...")
@@ -26,10 +29,10 @@ const SignUp = () => {
             setLoading(true);
             setMessage(`sending otp to ${email}`)
             await sendOTP(email);
-            const userDetails={email,username,password};
-            localStorage.setItem("TempUser",JSON.stringify(userDetails));
-            navigate("/verify-otp",{
-                replace:true
+            const userDetails = { email, username, password };
+            localStorage.setItem("TempUser", JSON.stringify(userDetails));
+            navigate("/verify-otp", {
+                replace: true
             })
         } catch (error) {
             console.log(error);
@@ -44,13 +47,41 @@ const SignUp = () => {
             navigate("/feed", { replace: true });
         }
     }, [user, navigate]);
-
-    const handleGithubLogin = () => {
+    const handleOAuthLogin = (provider) => {
         setLoading(true);
-        window.location.href = "http://localhost:5000/api/auth/github";
+
+        const width = 600;
+        const height = 700;
+        const left = window.screen.width / 2 - width / 2;
+        const top = window.screen.height / 2 - height / 2;
+
+        const popup = window.open(
+            `http://localhost:5000/api/auth/${provider}`,
+            "_blank",
+            `width=${width},height=${height},top=${top},left=${left}`
+        );
+
+        // Poll for popup close
+        const popupTick = setInterval(async () => {
+            if (popup.closed) {
+                clearInterval(popupTick);
+
+                try {
+                    const data = await getUser(); // backend reads cookie
+                    dispatch(setUser(data));
+                    showSuccess("Logged in successfully");
+                    navigate("/feed", { replace: true });
+                } catch (err) {
+                    console.log(err);
+                    showError(err?.response?.message || "Login failed. Please try again.");
+                } finally {
+                    setLoading(false);
+                }
+            }
+        }, 500);
     };
-    const handleLinkedInLogin = () => (window.location.href = "http://localhost:5000/auth/linkedin");
-    const handleGoogleLogin = () => (window.location.href = "http://localhost:5000/auth/google");
+
+
 
     if (loading) {
         return <Loader message={message} loading={loading} />;
@@ -127,7 +158,7 @@ const SignUp = () => {
                 </form>
                 <div className="flex flex-col gap-3 cursor-pointer">
                     <button
-                        onClick={handleGithubLogin}
+                        onClick={() => handleOAuthLogin("github")}
                         className="flex items-center justify-center gap-2 py-2 rounded-lg bg-white text-gray-800 border border-gray-300 hover:bg-gray-100 transition"
                     >
                         <img
@@ -137,21 +168,8 @@ const SignUp = () => {
                         />
                         Continue with Github
                     </button>
-
                     <button
-                        onClick={handleLinkedInLogin}
-                        className="flex items-center justify-center gap-2 py-2 rounded-lg bg-white text-gray-800 border border-gray-300 hover:bg-gray-100 transition"
-                    >
-                        <img
-                            src={linkedinLogo}
-                            alt="linkedin Logo"
-                            className="w-5 h-5"
-                        />
-                        Continue with LinkedIn
-                    </button>
-
-                    <button
-                        onClick={handleGoogleLogin}
+                        onClick={() => handleOAuthLogin("google")}
                         className="flex items-center justify-center gap-2 py-2 rounded-lg bg-white text-gray-800 border border-gray-300 hover:bg-gray-100 transition"
                     >
                         <img

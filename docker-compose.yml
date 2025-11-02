@@ -1,0 +1,47 @@
+services:
+  redis:
+    image: redis:alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  mongo:
+    image: mongo:7.0
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  backend:
+    build: ./server
+    container_name: server
+    ports:
+      - "5000:5000"
+    env_file: ./server/.env
+    depends_on:
+      - mongo
+      - redis
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    command: npm run dev
+
+  frontend:
+    build: ./client
+    container_name: client
+    ports:
+      - "5173:5173"
+    env_file: ./client/.env
+    depends_on:
+      - backend
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    command: npm run dev -- --host
+
+volumes:
+  mongo_data:
+  redis_data:

@@ -61,9 +61,15 @@ const userSchema = new Schema(
     },
     githubId: {
       type: String,
+      default: null
+    },
+    googleId: {
+      type: String,
+      default: null
     },
     refreshToken: {
       type: String,
+      default: null
     },
   },
   {

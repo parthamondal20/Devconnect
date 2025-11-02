@@ -1,9 +1,5 @@
 import passport from "passport";
 import generateAccessAndRefreshToken from "../utils/generateAccessAndRefreshToken.js";
-// Redirect to GitHub for login
-export const githubLogin = (req, res, next) => {
-  passport.authenticate("github", { scope: ["user:email"] })(req, res, next);
-};
 
 // GitHub OAuth callback
 export const githubCallback = (req, res, next) => {
@@ -34,8 +30,6 @@ export const githubCallback = (req, res, next) => {
           .cookie("accessToken", accessToken, options)
           .cookie("refreshToken", refreshToken, options)
           .send(`<script>window.close()</script>`);
-
-        // res.redirect(`${clientUrl}/github-success`); // frontend will receive cookie
       } catch (error) {
         console.error("Token generation failed:", error);
         res.redirect(`${clientUrl}/signin`);
@@ -43,6 +37,41 @@ export const githubCallback = (req, res, next) => {
     }
   )(req, res, next);
 };
+
+export const googleCallback = (req, res, next) => {
+  const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+
+  passport.authenticate(
+    "google",
+    {
+      failureRedirect: `${clientUrl}/signin`
+    },
+    async (err, user) => {
+      if (err || !user) {
+        console.error("Google login failed:", err);
+        return res.redirect(`${clientUrl}/signin`);
+      }
+      try {
+        const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id);
+        const options = {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+          sameSite: "lax",
+        };
+        res
+          .cookie("accessToken", accessToken, options)
+          .cookie("refreshToken", refreshToken, options)
+          .send(`<script>window.close()</script>`);
+
+      } catch (error) {
+        console.error("Token generation failed:", error);
+        res.redirect(`${clientUrl}/signin`);
+      }
+    }
+  )(req, res, next)
+};
+
 
 import User from "../models/user.model.js";
 import asyncHandler from "../utils/asyncHandler.js";

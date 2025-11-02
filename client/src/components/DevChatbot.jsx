@@ -20,8 +20,8 @@ export default function DevChatbot() {
 
         try {
             setLoading(true);
-            const res = await askAI(input);
-            const botMsg = { role: "bot", text: res.reply };
+            const reply = await askAI(input);
+            const botMsg = { role: "bot", text: reply };
             setMessages((prev) => [...prev, botMsg]);
         } catch (error) {
             console.error(error);
