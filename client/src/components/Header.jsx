@@ -34,25 +34,6 @@ const Header = () => {
                 >
                     DevConnect
                 </Link>
-
-                {/* 🧭 Desktop Navigation */}
-                <nav className="hidden md:flex items-center gap-8">
-                    {navItems.map((item) => (
-                        <NavLink
-                            key={item.path}
-                            to={item.path}
-                            className={({ isActive }) =>
-                                `text-sm font-medium transition-colors ${isActive
-                                    ? "text-blue-600 dark:text-blue-400"
-                                    : "text-gray-700 dark:text-gray-300 hover:text-blue-500"
-                                }`
-                            }
-                        >
-                            {item.label}
-                        </NavLink>
-                    ))}
-                </nav>
-
                 {/* 🌙 Right Section */}
                 <div className="flex items-center gap-4">
                     {/* Dark Mode Toggle */}
@@ -71,15 +52,6 @@ const Header = () => {
                         <User size={18} />
                         Profile
                     </Link>}
-
-                    {/* Mobile Menu Toggle */}
-                    {/* <button
-                        className="md:hidden p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition text-gray-800 dark:text-gray-200"
-                        onClick={() => setMenuOpen(!menuOpen)}
-                    >
-                        {menuOpen ? <X size={24} /> : <Menu size={24} />}
-                    </button> */}
-
                 </div>
             </div>
 
