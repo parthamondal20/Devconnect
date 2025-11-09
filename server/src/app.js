@@ -34,6 +34,8 @@ import likeRoutes from "./routes/like.route.js";
 import commentRoutes from "./routes/comment.route.js";
 import chatbotRoutes from "./routes/chatbot.route.js";
 import authenticateUser from "./middlewares/authenticate.middleware.js";
+import healthcheckRoute from "./routes/healthcheck.route.js";
+app.use("/api/healthcheck", healthcheckRoute);
 app.use("/api/auth", authRoutes);
 app.use(authenticateUser);
 app.use("/api/user", userRoutes);
