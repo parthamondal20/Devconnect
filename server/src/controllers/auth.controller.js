@@ -24,7 +24,7 @@ export const githubCallback = (req, res, next) => {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
           maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-          sameSite: "lax",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         };
         res
           .cookie("accessToken", accessToken, options)
@@ -57,7 +57,7 @@ export const googleCallback = (req, res, next) => {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
           maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-          sameSite: "lax",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         };
         res
           .cookie("accessToken", accessToken, options)
@@ -100,7 +100,8 @@ const signup = asyncHandler(async (req, res) => {
   const options = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax", // ✅ REQUIRED for cross-origin cookies
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    // ✅ REQUIRED for cross-origin cookies
     maxAge: 7 * 24 * 60 * 60 * 1000,
   };
   return res
@@ -133,7 +134,7 @@ const signin = asyncHandler(async (req, res) => {
   const options = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax", // ✅ REQUIRED for cross-origin cookies
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // ✅ REQUIRED for cross-origin cookies
     maxAge: 7 * 24 * 60 * 60 * 1000,
   };
   return res
@@ -225,7 +226,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   const options = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax", // ✅ REQUIRED for cross-origin cookies
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // ✅ REQUIRED for cross-origin cookies
     maxAge: 7 * 24 * 60 * 60 * 1000,
   };
   return res
