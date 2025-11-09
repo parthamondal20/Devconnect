@@ -1,7 +1,13 @@
 import { Link } from "react-router-dom";
 import { Code2, Users, Rocket, Sparkles } from "lucide-react";
-
+import { useSelector } from "react-redux";
 const Home = () => {
+    const { user } = useSelector((state) => state.auth);
+    if (user) {
+        // if already logged in, redirect to feed
+        window.location.href = "/feed";
+        return null;
+    }
     return (
         <section className="flex flex-col items-center justify-center text-center px-6 py-20 bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
             {/* Hero Section */}

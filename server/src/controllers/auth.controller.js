@@ -17,8 +17,6 @@ export const githubCallback = (req, res, next) => {
       try {
         const { accessToken, refreshToken } =
           await generateAccessAndRefreshToken(user._id);
-        console.log("GitHub login successful:", user);
-        console.log("Generated tokens:", accessToken);
         // Set cookie
         const options = {
           httpOnly: true,
@@ -199,11 +197,8 @@ const resendOTP = asyncHandler(async (req, res) => {
 
 import jwt from "jsonwebtoken";
 const refreshAccessToken = asyncHandler(async (req, res) => {
-  console.log("Request coming here");
   const incomingRefreshToken =
     req?.cookies?.refreshToken || req?.body?.refreshToken;
-
-  console.log("The incoming refresh token is ", incomingRefreshToken);
   if (!incomingRefreshToken) {
     throw new ApiError(400, "Invalid refresh token");
   }
