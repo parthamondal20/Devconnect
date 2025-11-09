@@ -15,6 +15,7 @@ const SignIn = () => {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("Logging in with github...");
     const dispatch = useDispatch();
+    const serverURL = import.meta.env.VITE_BACKEND_URL;
     const handleEmailLogin = async (e) => {
         e.preventDefault();
         // TODO: call backend API for JWT login
@@ -43,7 +44,7 @@ const SignIn = () => {
         const top = window.screen.height / 2 - height / 2;
 
         const popup = window.open(
-            `http://localhost:5000/api/auth/${provider}`,
+            `${serverURL}/auth/${provider}`,
             "_blank",
             `width=${width},height=${height},top=${top},left=${left}`
         );

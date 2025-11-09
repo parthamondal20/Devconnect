@@ -20,6 +20,7 @@ const SignUp = () => {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("Loading...")
     const { user } = useSelector(state => state.auth);
+    const serverURL = import.meta.env.VITE_BACKEND_URL;
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!email.trim()) {
@@ -56,7 +57,7 @@ const SignUp = () => {
         const top = window.screen.height / 2 - height / 2;
 
         const popup = window.open(
-            `http://localhost:5000/api/auth/${provider}`,
+            `${serverURL}/auth/${provider}`,
             "_blank",
             `width=${width},height=${height},top=${top},left=${left}`
         );
