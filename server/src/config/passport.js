@@ -33,6 +33,7 @@ passport.use(
           });
         } else if (!user.githubId) {
           user.githubId = profile.id;
+          user.githubUsername = profile.username;
           await user.save();
         }
         return done(null, user);

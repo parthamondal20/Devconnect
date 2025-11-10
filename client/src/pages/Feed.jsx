@@ -4,8 +4,8 @@ import {
   MessageCircle,
   Share2,
   MoreHorizontal,
-  Download,
   ImagePlus,
+  X,
 } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -19,6 +19,7 @@ import { likeRequest } from "../services/like";
 import debounce from "lodash/debounce";
 import { addComment, getComments } from "../services/comment";
 import { showError } from "../utils/toast";
+import { toast } from "react-hot-toast";
 import CommentModal from "../components/CommentModal";
 import Sidebar from "../components/Sidebar";
 const Feed = () => {
@@ -29,6 +30,7 @@ const Feed = () => {
   const navigate = useNavigate();
   const [selectedImage, setSelectedImage] = useState(null);
   const [menuOpen, setMenuOpen] = useState(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState(null);
   const [openPostModal, setOpenPostModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("loading..");
@@ -82,28 +84,45 @@ const Feed = () => {
     };
     fetchPosts();
   }, [post]);
-
   // Delete post
   const handleDelete = async (postId) => {
-    try {
-      setLoading(true);
-      setMessage("deleting post...");
-      await deletePost(postId);
-      setPosts((prev) => prev.filter((p) => p._id !== postId));
-    } catch (err) {
-      console.error("Failed to delete post:", err);
-    } finally {
-      setLoading(false);
-    }
+    await toast.promise(
+      deletePost(postId).then(() => {
+        // update state only when delete succeeds
+        setPosts((prev) => prev.filter((p) => p._id !== postId));
+      }),
+      {
+        loading: "Deleting post...",
+        success: "Post deleted successfully!",
+        error: "Failed to delete post.",
+      },
+      {
+        duration: 2500, // toast disappears after ~2.5 seconds
+      }
+    );
   };
 
   // Download image
-  const handleDownload = (url) => {
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "image";
-    link.click();
-  };
+  // Note: download action removed per UX changes (no direct file downloads in UI)
+
+  // Prevent background scroll and allow ESC to close the fullscreen image
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (e.key === "Escape") setSelectedImage(null);
+    };
+
+    if (selectedImage) {
+      document.body.style.overflow = "hidden";
+      window.addEventListener("keydown", handleKey);
+    } else {
+      document.body.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", handleKey);
+    };
+  }, [selectedImage]);
   if (loading) {
     return <Loader message={message} loading={loading} />
   }
@@ -115,7 +134,7 @@ const Feed = () => {
         <div className="flex gap-3 mb-4">
           <img
             src={user?.avatar}
-            onClick={() => navigate("/profile")}
+            onClick={() => navigate(`/profile/${user?._id}`)}
             alt="avatar"
             className="w-14 h-14 rounded-full border border-gray-300 dark:border-gray-700 cursor-pointer"
           />
@@ -125,13 +144,6 @@ const Feed = () => {
             className="w-full bg-gray-100 dark:bg-gray-800 rounded-xl p-3 text-gray-900 dark:text-gray-100 resize-none outline-none placeholder-gray-400"
             rows={2}
           />
-        </div>
-        <div className="flex justify-between items-center">
-          <label className="flex items-center gap-2 cursor-pointer text-blue-500 hover:text-blue-600">
-            <ImagePlus size={18} />
-            <span className="text-sm font-medium">Photo</span>
-            <input type="file" accept="image/*" className="hidden" />
-          </label>
         </div>
       </div>
       <PostModal
@@ -148,7 +160,9 @@ const Feed = () => {
         >
           {/* Header */}
           <div className="flex justify-between items-start p-5">
-            <div className="flex gap-3">
+            <div
+              onClick={() => navigate(`/profile/${postItem.user._id}`)}
+              className="flex gap-3 cursor-pointer">
               <img
                 src={postItem.user?.avatar}
                 alt="avatar"
@@ -185,23 +199,36 @@ const Feed = () => {
               </button>
 
               {menuOpen === postItem._id && (
-                <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-md z-20">
-                  {postItem.user?._id === user?._id && (
-                    <button
-                      onClick={() => handleDelete(postItem._id)}
-                      className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700"
-                    >
-                      Delete
-                    </button>
-                  )}
-                  {postItem.images?.length > 0 && (
-                    <button
-                      onClick={() => handleDownload(postItem.images[0].url)}
-                      className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                    >
-                      <Download size={16} /> Download
-                    </button>
-                  )}
+                <div className="absolute right-0 mt-2 w-44 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-md z-20 p-1">
+                  {/* If post belongs to current user show delete action */}
+                  {postItem.user?._id === user?._id ? (
+                    deleteConfirmId === postItem._id ? (
+                      <div className="p-3">
+                        <p className="text-sm text-gray-700 dark:text-gray-200 mb-2">Are you sure you want to delete this post?</p>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => { setDeleteConfirmId(null); setMenuOpen(null); }}
+                            className="flex-1 px-3 py-1 text-sm border rounded-md hover:bg-gray-50 dark:hover:bg-gray-700"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => { handleDelete(postItem._id); setDeleteConfirmId(null); setMenuOpen(null); }}
+                            className="flex-1 px-3 py-1 text-sm bg-red-600 text-white rounded-md hover:opacity-90"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setDeleteConfirmId(postItem._id)}
+                        className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+                      >
+                        Delete
+                      </button>
+                    )
+                  ) : null /* Future actions for other users' posts can go here */}
                 </div>
               )}
             </div>
@@ -280,17 +307,33 @@ const Feed = () => {
       {/* Fullscreen Image Modal */}
       {selectedImage && (
         <div
-          className="fixed inset-0 z-50 flex justify-center items-center bg-black/70 backdrop-blur-md transition-opacity duration-300"
+          className="fixed inset-0 z-50 flex justify-center items-center bg-black/70 backdrop-blur-md transition-opacity duration-300 p-4"
           onClick={(e) => {
-            // Close only if clicked outside the image
+            // Close only if clicked outside the image area
             if (e.target === e.currentTarget) setSelectedImage(null);
           }}
+          role="dialog"
+          aria-modal="true"
         >
-          <img
-            src={selectedImage}
-            alt="fullscreen"
-            className="max-w-[90%] max-h-[90%] rounded-2xl shadow-2xl transition-transform duration-300 transform hover:scale-105 cursor-zoom-out"
-          />
+          <div className="relative max-w-[95%] max-h-[95%] w-full flex items-center justify-center">
+            {/* Close button */}
+            <button
+              onClick={() => setSelectedImage(null)}
+              aria-label="Close image preview"
+              className="absolute top-2 right-2 z-50 p-2 rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-sm transition"
+            >
+              <X size={18} />
+            </button>
+
+            {/* Image container with subtle border and shadow */}
+            <div className="rounded-2xl overflow-hidden shadow-2xl bg-black">
+              <img
+                src={selectedImage}
+                alt="fullscreen"
+                className="block max-w-full max-h-[80vh] w-auto h-auto object-contain transition-transform duration-300 transform hover:scale-105 cursor-zoom-out"
+              />
+            </div>
+          </div>
         </div>
       )}
 

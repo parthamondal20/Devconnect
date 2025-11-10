@@ -63,6 +63,10 @@ const userSchema = new Schema(
       type: String,
       default: null
     },
+    githubUsername:{
+      type: String,
+      default: null
+    },
     googleId: {
       type: String,
       default: null

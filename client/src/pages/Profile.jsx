@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { User, Code, Users, FolderGit2, Edit2, X, LogOut } from "lucide-react";
 import Loader from "../components/Loader";
 import { logout } from "../services/auth";
 import { showError, showSuccess } from "../utils/toast";
 import { setUser, clearUser } from "../features/authSlice";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { uploadAvatar } from "../services/user";
+import { getUserProfile } from "../services/user";
 const ALL_SKILLS = [
     "React", "Node.js", "Express", "MongoDB", "Tailwind", "TypeScript",
     "Docker", "Git", "Next.js", "Python", "C++", "Firebase", "GraphQL",
@@ -15,6 +16,7 @@ const ALL_SKILLS = [
 
 const Profile = () => {
     const { user } = useSelector((state) => state.auth);
+    const { user_id } = useParams();
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const [isEditing, setIsEditing] = useState(false);
@@ -26,6 +28,7 @@ const Profile = () => {
     const [avatarFile, setAvatarFile] = useState(null);
     const [avatarPreview, setAvatarPreview] = useState(user?.avatar || "");
     const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
+    const [profileUser, setProfileUser] = useState(user._id === user_id ? user : null);
     const toggleSkill = (skill) => {
         setSkills((prev) =>
             prev.includes(skill)
@@ -33,7 +36,32 @@ const Profile = () => {
                 : [...prev, skill]
         );
     };
-
+    const fetchUserProfile = async () => {
+        try {
+            setLoading(true);
+            setMessage("Fetching user profile...");
+            const res = await getUserProfile(user_id);
+            console.log(res);
+            setProfileUser(res);
+            setBio(res?.bio || "");
+            setAbout(res?.about || "");
+            setAvatarPreview(res?.avatar || "");
+        } catch (error) {
+            console.log(error);
+            showError("Failed to fetch user profile");
+        } finally {
+            setLoading(false);
+        }
+    };
+    useEffect(() => {
+        if (!profileUser || profileUser._id !== user_id) {
+            fetchUserProfile();
+        } else {
+            setBio(profileUser?.bio || "");
+            setAbout(profileUser?.about || "");
+            setAvatarPreview(profileUser?.avatar || "");
+        }
+    }, [user_id]);
     const handleSave = () => {
         // here you'd send PUT request to backend (example)
         console.log({
@@ -75,7 +103,7 @@ const Profile = () => {
         }
     }
 
-    if (loading) {
+    if (loading || !profileUser) {
         return <Loader message={message} loading={loading} />
     }
 
@@ -95,7 +123,7 @@ const Profile = () => {
                                 onClick={() => setIsAvatarModalOpen(true)}
                             />
                             {/* Camera button */}
-                            <label className="absolute bottom-0 right-0 bg-blue-600 hover:bg-blue-700 text-white p-1 rounded-full cursor-pointer border-2 border-white dark:border-gray-900">
+                            {profileUser._id === user._id && <label className="absolute bottom-0 right-0 bg-blue-600 hover:bg-blue-700 text-white p-1 rounded-full cursor-pointer border-2 border-white dark:border-gray-900">
                                 <input
                                     type="file"
                                     accept="image/*"
@@ -127,7 +155,7 @@ const Profile = () => {
                                     />
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 11a3 3 0 100 6 3 3 0 000-6z" />
                                 </svg>
-                            </label>
+                            </label>}
                         </div>
                         {isAvatarModalOpen && (
                             <div
@@ -143,14 +171,14 @@ const Profile = () => {
                             </div>
                         )}
                         <div>
-                            <h1 className="text-2xl font-bold">{user?.username || "Dev User"}</h1>
-                            <p className="text-gray-500 dark:text-gray-400">@{user?.email || "email@example.com"}</p>
+                            <h1 className="text-2xl font-bold">{profileUser?.username || "Dev User"}</h1>
+                            <p className="text-gray-500 dark:text-gray-400">@{profileUser?.email || "email@example.com"}</p>
                             <p className="mt-2 text-gray-600 dark:text-gray-300 max-w-md">
                                 {bio || "Building, breaking, and fixing code. Passionate about open source and web development."}
                             </p>
                         </div>
                     </div>
-                    <div className="flex gap-3 mt-4 md:mt-0">
+                    {profileUser._id === user._id && <div className="flex gap-3 mt-4 md:mt-0">
                         <button
                             onClick={() => setIsEditing(true)}
                             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition"
@@ -164,19 +192,19 @@ const Profile = () => {
                         >
                             <LogOut className="w-4 h-4" /> Logout
                         </button>
-                    </div>
+                    </div>}
                 </div>
 
                 {/* Stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
                     <div className="bg-white dark:bg-gray-900 p-4 rounded-xl shadow flex flex-col items-center cursor-pointer ">
                         <Users className="text-blue-400 w-6 h-6" />
-                        <p className="text-xl font-bold mt-1">{user?.followers?.length || 0}</p>
+                        <p className="text-xl font-bold mt-1">{profileUser?.followers?.length || 0}</p>
                         <p className="text-gray-400 text-sm">Followers</p>
                     </div>
                     <div className="bg-white dark:bg-gray-900 p-4 rounded-xl shadow flex flex-col items-center cursor-pointer ">
                         <Users className="text-green-400 w-6 h-6" />
-                        <p className="text-xl font-bold mt-1">{user?.following?.length || 0}</p>
+                        <p className="text-xl font-bold mt-1">{profileUser?.following?.length || 0}</p>
                         <p className="text-gray-400 text-sm">Following</p>
                     </div>
                     <div className="bg-white dark:bg-gray-900 p-4 rounded-xl shadow flex flex-col items-center cursor-pointer ">
@@ -184,9 +212,11 @@ const Profile = () => {
                         <p className="text-xl font-bold mt-1">34</p>
                         <p className="text-gray-400 text-sm">Posts</p>
                     </div>
-                    <div className="bg-white dark:bg-gray-900 p-4 rounded-xl shadow flex flex-col items-center cursor-pointer ">
+                    <div
+                        onClick={() => navigate(`/projects/${profileUser.githubId}`)}
+                        className="bg-white dark:bg-gray-900 p-4 rounded-xl shadow flex flex-col items-center cursor-pointer ">
                         <FolderGit2 className="text-yellow-400 w-6 h-6" />
-                        <p className="text-xl font-bold mt-1">8</p>
+                        {/* <p className="text-xl font-bold mt-1">8</p> */}
                         <p className="text-gray-400 text-sm">Projects</p>
                     </div>
                 </div>

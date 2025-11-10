@@ -46,7 +46,7 @@ const Header = () => {
 
                     {/* Login/Profile Button */}
                     {user && <Link
-                        to="/profile"
+                        to={`/profile/${user._id}`}
                         className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-medium hover:opacity-90 transition"
                     >
                         <User size={18} />
@@ -70,7 +70,7 @@ const Header = () => {
                             </Link>
                         ))}
                         <Link
-                            to="/profile"
+                            to={`/profile/${user._id}`}
                             onClick={() => setMenuOpen(false)}
                             className="flex items-center gap-2 mt-2 text-blue-600 dark:text-blue-400 font-medium"
                         >

@@ -48,4 +48,15 @@ const uploadProfilePicture = asyncHandler(async (req, res) => {
       new ApiResponse(200, "Profile picture uploaded successfully", updatedUser)
     );
 });
-export { getUser, uploadProfilePicture };
+
+const getUserProfile = asyncHandler(async (req, res) => {
+  const { user_id } = req.params;
+  const user = await User.findById(user_id).select("-password -refreshToken");
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "User profile fetched successfully", user));
+});
+export { getUser, uploadProfilePicture, getUserProfile };
