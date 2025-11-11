@@ -12,6 +12,7 @@
   "author": "Partha Mondal",
   "license": "ISC",
   "dependencies": {
+    "@upstash/redis": "^1.35.6",
     "bcrypt": "^6.0.0",
     "cloudinary": "^2.7.0",
     "cookie-parser": "^1.4.7",

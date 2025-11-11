@@ -10,8 +10,10 @@ const postSchema = new Schema(
         publicId: { type: String, required: true },
       },
     ], // store URLs
+    likesCount: { type: Number, default: 0 },
     likes: [{ type: Schema.Types.ObjectId, ref: "Like" }], // Like references
     comments: [{ type: Schema.Types.ObjectId, ref: "Comment" }],
+    commentsCount: { type: Number, default: 0 },
     shares: [{ type: Schema.Types.ObjectId, ref: "User" }], // user IDs who shared
     shareCount: { type: Number, default: 0 },
     postType: {

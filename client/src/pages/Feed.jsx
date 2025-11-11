@@ -38,35 +38,44 @@ const Feed = () => {
   // for comments
   const [activePost, setActivePost] = useState(null);
   // Add new post to feed
-  const [likes, setLikes] = useState(0);
-  const [liked, setLiked] = useState(0);
+  // local per-post like state handled inside posts[]; remove unused globals
   // Fetch all posts initially
 
   const sendLikeRequest = useCallback(
     debounce(async (postId) => {
       try {
         const res = await likeRequest(postId);
-        setLikes(res);
-        // setLiked(res.data.liked);
+        // res expected: { likesCount, liked }
+        if (res && typeof res === "object") {
+          setPosts((prev) =>
+            prev.map((p) =>
+              p._id === postId ? { ...p, likesCount: res.likesCount, likedByCurrentUser: res.liked } : p
+            )
+          );
+        }
       } catch (err) {
         console.error(err);
       }
-    }, 300), // 300ms debounce
+    }, 300),
     []
   );
 
   const handleLike = (post_id) => {
-    // Optimistic UI update
-    setLiked(!liked);
-    setLikes((prev) => (liked ? prev - 1 : prev + 1));
+    // Optimistic UI update: flip likedByCurrentUser and adjust likesCount locally
+    setPosts((prev) =>
+      prev.map((p) => {
+        if (p._id !== post_id) return p;
+        const currentlyLiked = Boolean(p.likedByCurrentUser);
+        return {
+          ...p,
+          likedByCurrentUser: !currentlyLiked,
+          likesCount: currentlyLiked ? (p.likesCount || 0) - 1 : (p.likesCount || 0) + 1,
+        };
+      })
+    );
 
     // Send debounced request
     sendLikeRequest(post_id);
-    if (!liked) {
-      // Trigger pop animation
-      setAnimate(true);
-      setTimeout(() => setAnimate(false), 300);
-    }
   };
 
 
@@ -75,6 +84,7 @@ const Feed = () => {
       try {
         setLoading(true);
         const res = await getPosts();
+        console.log("Fetched posts:", res);
         setPosts(res);
       } catch (error) {
         console.error(error);
@@ -275,10 +285,13 @@ const Feed = () => {
             <div className="flex gap-6">
               <button
                 onClick={() => handleLike(postItem._id)}
-                className={`flex items-center gap-1 p-2 transition-colors duration-200 ${postItem.likes.includes(user?._id) || liked ?
-                  'text-red-500 fill-red-500 animate-pulseHeart'
-                  : 'text-gray-400'}`}>
-                <Heart size={18} /> <span>{postItem.likes?.length || likes}</span> </button>
+                className={`flex items-center gap-1 p-2`}>
+                <Heart size={18}
+                  className={`transition ${postItem.likedByCurrentUser
+                    ? 'fill-red-500 text-red-500'
+                    : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
+                    }`}
+                /> <span>{postItem.likesCount || 0}</span> </button>
               <button
                 className="flex items-center gap-1 hover:text-blue-500 transition"
                 onClick={() =>
@@ -286,7 +299,7 @@ const Feed = () => {
                 }
               >
                 <MessageCircle size={18} />
-                <span>{postItem.comments?.length || 0}</span>
+                <span>{postItem.commentsCount || 0}</span>
               </button>
 
               <button className="flex items-center gap-1 hover:text-green-500 transition">

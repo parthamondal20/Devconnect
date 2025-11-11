@@ -31,7 +31,7 @@ passport.use(
             password: randomPassword,
             verified: true,
           });
-        } else if (!user.githubId) {
+        } else if (!user.githubId || !user.githubUsername) {
           user.githubId = profile.id;
           user.githubUsername = profile.username;
           await user.save();

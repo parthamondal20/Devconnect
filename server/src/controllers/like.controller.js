@@ -3,27 +3,37 @@ import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import Post from "../models/post.model.js";
-
+import redis from "../config/redis.js";
 const likePost = asyncHandler(async (req, res) => {
   const { post_id } = req.params;
   const post = await Post.findById(post_id);
   if (!post) {
-    throw new ApiError(200, "Post not found");
+    throw new ApiError(404, "Post not found");
   }
-
+  const redisKey = `post:${post_id}:likes`;
   const userId = req.user._id;
+  // normalize user id for redis (store as string)
+  const userIdStr = String(userId);
+  const alreadyLiked = await redis.sismember(redisKey, userIdStr);
 
-  if (post.likes.includes(userId)) {
-    // If already liked, remove the like
-    post.likes = post.likes.filter((id) => id.toString() !== userId);
+  if (alreadyLiked) {
+    // unlike
+    await Like.findOneAndDelete({ user: userId, post: post_id });
+    await Post.findByIdAndUpdate(post_id, { $inc: { likesCount: -1 } });
+    await redis.srem(redisKey, userIdStr);
   } else {
-    // Add like
-    post.likes.push(userId);
+    // like
+    await Like.create({ user: userId, post: post_id });
+    await Post.findByIdAndUpdate(post_id, { $inc: { likesCount: 1 } });
+    await redis.sadd(redisKey, userIdStr);
   }
 
-  await post.save();
-
-  return res.status(200).json(new ApiResponse(200, "Liked", post.likes.length));
+  // Return updated status
+  const updatedPost = await Post.findById(post_id).select("likesCount");
+  const isLiked = await redis.sismember(redisKey, userIdStr);
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "OK", { likesCount: updatedPost.likesCount, liked: Boolean(isLiked) }));
 });
 
 export { likePost };

@@ -3,6 +3,7 @@ import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import Post from "../models/post.model.js";
 import { uploadBufferToCloudinary } from "../config/cloudinary.js";
+import redis from "../config/redis.js";
 const createPost = asyncHandler(async (req, res) => {
   const user = req.user;
   const { about } = req.body;
@@ -31,6 +32,21 @@ const createPost = asyncHandler(async (req, res) => {
 
 const getPosts = asyncHandler(async (req, res) => {
   const posts = await Post.find({}).sort({ createdAt: -1 }).populate("user");
+
+  // If user is authenticated, annotate each post with whether the current user liked it
+  const userId = req.user?._id ? String(req.user._id) : null;
+  if (userId) {
+    const results = await Promise.all(
+      posts.map((p) => redis.sismember(`post:${p._id}:likes`, userId))
+    );
+    const annotated = posts.map((post, index) => {
+      const postObj = post.toObject ? post.toObject() : post;
+      postObj.likedByCurrentUser = Boolean(results[index]);
+      return postObj;
+    });
+    return res.status(200).json(new ApiResponse(200, "All post is here", annotated));
+  }
+
   return res.status(200).json(new ApiResponse(200, "All post is here", posts));
 });
 const deletePost = asyncHandler(async (req, res) => {

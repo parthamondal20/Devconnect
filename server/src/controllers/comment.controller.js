@@ -2,6 +2,7 @@ import Comment from "../models/comment.model.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
+import Post from "../models/post.model.js";
 const getComments = asyncHandler(async (req, res) => {
     const { post_id } = req.params;
     const comments = await Comment.find({ post: post_id }).populate("user").sort({ createdAt: -1 });
@@ -21,7 +22,7 @@ const addComment = asyncHandler(async (req, res) => {
         post: post_id,
         text
     });
-
+    await Post.findByIdAndUpdate(post_id, { $inc: { commentsCount: 1 } });
     if (!newComment) {
         throw new ApiError(400, "Failed to add comment");
     }
