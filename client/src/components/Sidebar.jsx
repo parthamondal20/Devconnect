@@ -1,11 +1,12 @@
 import { NavLink } from "react-router-dom";
-import { Home, Users, FolderGit2, MessageCircle } from "lucide-react";
+import { Home, Users, FolderGit2, MessageCircle, Briefcase } from "lucide-react";
 
 const navItems = [
     { label: "Feed", path: "/feed", icon: <Home size={20} /> },
     { label: "Community", path: "/community", icon: <Users size={20} /> },
     { label: "Projects", path: "/projects", icon: <FolderGit2 size={20} /> },
     { label: "Q&A 💬", path: "/questions", icon: <MessageCircle size={20} /> },
+    { label: "Jobs", path: "/jobs", icon: <Briefcase size={20} /> },
 ];
 
 const Sidebar = () => {

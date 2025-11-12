@@ -213,7 +213,7 @@ const Profile = () => {
                         <p className="text-gray-400 text-sm">Posts</p>
                     </div>
                     <div
-                        onClick={() => navigate(`/projects/${profileUser.githubId}`)}
+                        onClick={() => navigate(`/projects/${profileUser._id}`)}
                         className="bg-white dark:bg-gray-900 p-4 rounded-xl shadow flex flex-col items-center cursor-pointer ">
                         <FolderGit2 className="text-yellow-400 w-6 h-6" />
                         {/* <p className="text-xl font-bold mt-1">8</p> */}

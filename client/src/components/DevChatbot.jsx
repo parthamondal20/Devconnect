@@ -15,12 +15,13 @@ export default function DevChatbot() {
         if (!input.trim()) return;
 
         const userMsg = { role: "user", text: input };
-        setMessages((prev) => [...prev, userMsg]);
+        const updatedMessages = [...messages, userMsg];
+        setMessages(updatedMessages);
         setInput("");
 
         try {
             setLoading(true);
-            const reply = await askAI(input);
+            const reply = await askAI(updatedMessages);
             const botMsg = { role: "bot", text: reply };
             setMessages((prev) => [...prev, botMsg]);
         } catch (error) {

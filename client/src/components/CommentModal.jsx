@@ -51,7 +51,7 @@ const CommentModal = ({ post, onClose }) => {
                 // Add as new comment
                 setComments([...comments, { ...newComment, replies: [] }]);
             }
-
+            post.commentsCount += 1;
             setCommentText("");
         } catch (err) {
             showError("Failed to add comment! Try again");

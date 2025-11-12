@@ -18,6 +18,7 @@ const Profile = lazy(() => import("./pages/Profile.jsx"));
 const OTPpage = lazy(() => import("./components/Otppage.jsx"));
 const QuestionsPage = lazy(() => import("./pages/QuestionPage.jsx"));
 const ProjectPage = lazy(() => import("./pages/ProjectPage.jsx"));
+const Jobs = lazy(() => import("./pages/Jobs.jsx"));
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path='' element={<Layout />}>
@@ -27,6 +28,7 @@ const router = createBrowserRouter(
       <Route path='/github-success' element={<GitHubSuccess />} />
       <Route path='/feed' element={<Feed />} />
       <Route path='/profile/:user_id' element={<Profile />} />
+      <Route path='/jobs' element={<Jobs />} />
       <Route path='/projects/:githubId' element={<ProjectPage />} />
       <Route path='/verify-otp' element={<OTPpage />} />
       <Route path='/questions' element={<QuestionsPage />} />

@@ -14,14 +14,14 @@ export default function ProjectPage() {
     const [message, setMessage] = useState("Fetching your GitHub projects...");
 
     useEffect(() => {
-        if (!githubId) return;
+        if (!user.githubUsername) return;
 
         const fetchRepos = async () => {
             setLoading(true);
             try {
-                const userRes = await axios.get(`https://api.github.com/user/${githubId}`);
-                const username = userRes.data.login;
-                const reposRes = await axios.get(`https://api.github.com/users/${username}/repos`);
+                // const userRes = await axios.get(`https://api.github.com/user/${githubId}`);
+                // const username = userRes.data.login;
+                const reposRes = await axios.get(`https://api.github.com/users/${user.githubUsername}/repos`);
                 setRepos(reposRes.data);
             } catch (err) {
                 console.error("Failed to fetch GitHub repos:", err);
@@ -54,7 +54,7 @@ export default function ProjectPage() {
                     <p className="text-gray-500 dark:text-gray-400 text-lg text-center">
                         No public repositories found.
                     </p>
-                    {profileUser && profileUser._id === user._id && (
+                    {profileUser && profileUser._id === user._id && !profileUser.githubUsername && (
                         <button className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold shadow-md hover:shadow-lg transition-transform transform hover:scale-105">
                             Connect GitHub
                         </button>
