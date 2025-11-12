@@ -7,27 +7,31 @@ const client = new OpenAI({
     apiKey: process.env.OPENAI_SECRET_KEY
 })
 const askAi = asyncHandler(async (req, res) => {
-    const { query } = req.body;
-    if (!query.trim()) {
-        throw ApiError(400, "Please write the message");
+    const { messages } = req.body;
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+        throw  new ApiError(400, "No messages provided");
     }
-    const completion = await client.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [
-            {
-                role: "system",
-                content: `You are DevConnect Assistant, a helpful AI designed to:
+    const openAiMessages = [
+        {
+            role: "system",
+            content: `You are DevConnect Assistant, a helpful AI designed to:
           - guide users on what types of technical questions are suitable for the Q&A section
           - help explain code snippets and debug logic
           - behave like a Stack Overflow moderator, encouraging clear, specific, and reproducible questions.
           Answer professionally but in simple, developer-friendly tone.`,
-            },
-            {
-                role: "user",
-                content: query,
-            },
-        ],
+        },
+        // Map frontend messages to OpenAI format
+        ...messages.map(m => ({
+            role: m.role === "user" ? "user" : "assistant",
+            content: m.text
+        }))
+    ];
+
+    const completion = await client.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: openAiMessages,
     });
+
     const reply = completion.choices[0].message.content;
     return res
         .status(200)
