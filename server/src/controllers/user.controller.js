@@ -20,6 +20,7 @@ import {
   uploadBufferToCloudinary,
   deleteFromCloudinary,
 } from "../config/cloudinary.js";
+import { uploadToImageKit, deleteFromImageKit } from "../config/imagekit.js";
 const uploadProfilePicture = asyncHandler(async (req, res) => {
   const user = req?.user;
   const file = req.file;
@@ -30,14 +31,14 @@ const uploadProfilePicture = asyncHandler(async (req, res) => {
     throw new ApiError(400, "User not found");
   }
   if (user.avatarPublicId) {
-    await deleteFromCloudinary(user.avatarPublicId);
+    await deleteFromImageKit(user.avatarPublicId);
   }
-  const response = await uploadBufferToCloudinary(file.buffer);
+  const response = await uploadToImageKit(file.buffer, file.originalname);
   if (!response) {
     throw new ApiError(400, "Failed to change profile picture.Try again");
   }
-  user.avatar = response.secure_url;
-  user.avatarPublicId = response.public_id;
+  user.avatar = response.url;
+  user.avatarPublicId = response.fileId;
   await user.save();
   const updatedUser = await User.findById(user._id).select(
     "-password -refreshToken"

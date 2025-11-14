@@ -165,7 +165,12 @@ const Profile = () => {
                                 <img
                                     src={avatarPreview}
                                     alt="avatar zoom"
-                                    className="max-w-full max-h-[80vh] rounded-lg shadow-lg"
+                                    className="
+        rounded-lg shadow-lg
+        w-[90vw] max-w-[600px]  
+        h-auto max-h-[80vh]     
+        object-contain
+      "
                                     onClick={(e) => e.stopPropagation()} // prevent closing when clicking the image
                                 />
                             </div>

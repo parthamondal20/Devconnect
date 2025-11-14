@@ -4,6 +4,7 @@ import ApiResponse from "../utils/ApiResponse.js";
 import Post from "../models/post.model.js";
 import { uploadBufferToCloudinary } from "../config/cloudinary.js";
 import redis from "../config/redis.js";
+import { uploadToImageKit } from "../config/imagekit.js";
 const createPost = asyncHandler(async (req, res) => {
   const user = req.user;
   const { about } = req.body;
@@ -12,10 +13,10 @@ const createPost = asyncHandler(async (req, res) => {
   let imageUrls = [];
   if (images && images.length > 0) {
     for (const image of images) {
-      const result = await uploadBufferToCloudinary(image.buffer);
+      const result = await uploadToImageKit(image.buffer, image.originalname);
       imageUrls.push({
-        url: result.secure_url,
-        publicId: result.public_id,
+        url: result.url,
+        publicId: result.fileId,
       });
     }
   }
