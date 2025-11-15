@@ -30,6 +30,7 @@ const router = createBrowserRouter(
       <Route path='/github-success' element={<GitHubSuccess />} />
       <Route path='/feed' element={<Feed />} />
       <Route path='/community' element={<Community />} />
+      <Route path='/profile/:user_id' element={<Profile />} />
       <Route path='/community/:community_id' element={<CommunityChatPage />} />
       <Route path='/jobs' element={<Jobs />} />
       <Route path='/projects/:githubId' element={<ProjectPage />} />

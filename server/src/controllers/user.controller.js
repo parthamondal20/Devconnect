@@ -45,14 +45,67 @@ const uploadProfilePicture = asyncHandler(async (req, res) => {
     );
 });
 
+const followUser = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const { user_id } = req.body;
+
+  if (userId.toString() === user_id) {
+    throw new ApiError(400, "You cannot follow yourself");
+  }
+
+  const userToFollow = await User.findById(user_id);
+  if (!userToFollow) {
+    throw new ApiError(404, "User not found");
+  }
+
+  const alreadyFollowing = userToFollow.followers.includes(userId);
+
+  if (alreadyFollowing) {
+    // UNFOLLOW
+    await User.updateOne(
+      { _id: userId },
+      { $pull: { following: user_id } }
+    );
+
+    await User.updateOne(
+      { _id: user_id },
+      { $pull: { followers: userId } }
+    );
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, "User unfollowed successfully", null));
+  }
+
+  // FOLLOW
+  await User.updateOne(
+    { _id: userId },
+    { $addToSet: { following: user_id } }
+  );
+
+  await User.updateOne(
+    { _id: user_id },
+    { $addToSet: { followers: userId } }
+  );
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "User followed successfully", null));
+});
+
+
 const getUserProfile = asyncHandler(async (req, res) => {
   const { user_id } = req.params;
+  const currentUserId = req.user?._id;
   const user = await User.findById(user_id).select("-password -refreshToken");
   if (!user) {
     throw new ApiError(404, "User not found");
   }
+  const isFollowing = currentUserId
+    ? user.followers.some(id => id.toString() === currentUserId.toString())
+    : false;
   return res
     .status(200)
-    .json(new ApiResponse(200, "User profile fetched successfully", user));
+    .json(new ApiResponse(200, "User profile fetched successfully", { ...user.toObject(), isFollowing }));
 });
-export { getUser, uploadProfilePicture, getUserProfile };
+export { getUser, uploadProfilePicture, getUserProfile, followUser };

@@ -19,6 +19,15 @@ const getUserProfile = async (userId) => {
     throw error;
   }
 };
+
+const followUser = async (userId) => {
+  try {
+    const res = await api.post(`/user/follow`, { user_id: userId });
+    return res.data.data;
+  } catch (error) {
+    throw error;
+  }
+}
 const uploadAvatar = async (formdata) => {
   try {
     const res = await api.put("/user/upload-avatar", formdata, {
@@ -31,4 +40,4 @@ const uploadAvatar = async (formdata) => {
     throw error;
   }
 };
-export { getUser, uploadAvatar, getUserProfile };
+export { getUser, uploadAvatar, getUserProfile, followUser };

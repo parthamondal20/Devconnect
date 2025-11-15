@@ -7,7 +7,7 @@ import { showError, showSuccess } from "../utils/toast";
 import { setUser, clearUser } from "../features/authSlice";
 import { useNavigate, useParams } from "react-router-dom";
 import { uploadAvatar } from "../services/user";
-import { getUserProfile } from "../services/user";
+import { getUserProfile, followUser } from "../services/user";
 const ALL_SKILLS = [
     "React", "Node.js", "Express", "MongoDB", "Tailwind", "TypeScript",
     "Docker", "Git", "Next.js", "Python", "C++", "Firebase", "GraphQL",
@@ -29,6 +29,8 @@ const Profile = () => {
     const [avatarPreview, setAvatarPreview] = useState(user?.avatar || "");
     const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
     const [profileUser, setProfileUser] = useState(user._id === user_id ? user : null);
+    const [isFollowing, setIsFollowing] = useState(false);
+    const [followersCount, setFollowersCount] = useState(0);
     const toggleSkill = (skill) => {
         setSkills((prev) =>
             prev.includes(skill)
@@ -46,6 +48,8 @@ const Profile = () => {
             setBio(res?.bio || "");
             setAbout(res?.about || "");
             setAvatarPreview(res?.avatar || "");
+            setIsFollowing(res?.isFollowing || false);
+            setFollowersCount(res?.followers?.length || 0);
         } catch (error) {
             console.log(error);
             showError("Failed to fetch user profile");
@@ -102,11 +106,28 @@ const Profile = () => {
             setLoading(false);
         }
     }
-
     if (loading || !profileUser) {
         return <Loader message={message} loading={loading} />
     }
-
+    const handleFollow = async () => {
+        try {
+            setLoading(true);
+            setMessage("Following user...");
+            await followUser(profileUser._id);
+            showSuccess("Followed user successfully");
+            if (isFollowing) {
+                setFollowersCount(prev => prev - 1);
+            } else {
+                setFollowersCount(prev => prev + 1);
+            }
+            setIsFollowing(prev => !prev);
+        } catch (error) {
+            showError("Failed to follow user");
+            console.log(error);
+        } finally {
+            setLoading(false);
+        }
+    }
 
     return (
         <div className="min-h-screen bg-gray-100 dark:bg-[#0d1117] text-gray-800 dark:text-gray-200 transition-colors duration-300">
@@ -199,17 +220,36 @@ const Profile = () => {
                         </button>
                     </div>}
                 </div>
-
+                {
+                    user._id !== profileUser._id && <div className="mt-6 flex justify-center gap-6">
+                        <button
+                            onClick={handleFollow}
+                            disabled={loading}
+                            className={`px-6 py-2.5 rounded-2xl w-full  text-white  shadow-md hover:shadow-lg transition-all active:scale-95 ${isFollowing
+                                ? "bg-gray-800 hover:bg-gray-900 border border-gray-700"
+                                : "bg-blue-600 hover:bg-blue-700 border border-blue-500"
+                                }`}
+                        >
+                            {isFollowing ? "Unfollow" : "Follow"}
+                        </button>
+                        <button
+                            onClick={() => showSuccess("Sent message! (not really, this is a demo)")}
+                            className="px-6 py-2.5 rounded-2xl w-full bg-gray-100 text-gray-900 hover:bg-gray-200 shadow-md hover:shadow-lg transition-all active:scale-95"
+                        >
+                            Message
+                        </button>
+                    </div>
+                }
                 {/* Stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
                     <div className="bg-white dark:bg-gray-900 p-4 rounded-xl shadow flex flex-col items-center cursor-pointer ">
                         <Users className="text-blue-400 w-6 h-6" />
-                        <p className="text-xl font-bold mt-1">{profileUser?.followers?.length || 0}</p>
+                        <p className="text-xl font-bold mt-1">{followersCount || 0}</p>
                         <p className="text-gray-400 text-sm">Followers</p>
                     </div>
                     <div className="bg-white dark:bg-gray-900 p-4 rounded-xl shadow flex flex-col items-center cursor-pointer ">
                         <Users className="text-green-400 w-6 h-6" />
-                        <p className="text-xl font-bold mt-1">{profileUser?.following?.length || 0}</p>
+                        <p className="text-xl font-bold mt-1">{profileUser.following?.length || 0}</p>
                         <p className="text-gray-400 text-sm">Following</p>
                     </div>
                     <div className="bg-white dark:bg-gray-900 p-4 rounded-xl shadow flex flex-col items-center cursor-pointer ">
