@@ -2,7 +2,6 @@ import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import Post from "../models/post.model.js";
-import { uploadBufferToCloudinary } from "../config/cloudinary.js";
 import redis from "../config/redis.js";
 import { uploadToImageKit } from "../config/imagekit.js";
 const createPost = asyncHandler(async (req, res) => {

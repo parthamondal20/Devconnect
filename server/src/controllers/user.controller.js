@@ -15,11 +15,6 @@ const getUser = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, "User fetched successfully", user));
 });
-
-import {
-  uploadBufferToCloudinary,
-  deleteFromCloudinary,
-} from "../config/cloudinary.js";
 import { uploadToImageKit, deleteFromImageKit } from "../config/imagekit.js";
 const uploadProfilePicture = asyncHandler(async (req, res) => {
   const user = req?.user;

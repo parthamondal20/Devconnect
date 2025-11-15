@@ -26,7 +26,6 @@ app.use(
 import "./config/passport.js";
 app.use(passport.initialize());
 app.use(passport.session());
-
 import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/user.route.js";
 import postRoutes from "./routes/post.routes.js";
@@ -35,12 +34,14 @@ import commentRoutes from "./routes/comment.route.js";
 import chatbotRoutes from "./routes/chatbot.route.js";
 import authenticateUser from "./middlewares/authenticate.middleware.js";
 import jobRoutes from "./routes/job.route.js";
+import communityRoutes from "./routes/community.routes.js";
 import healthcheckRoute from "./routes/healthcheck.route.js";
 app.use("/api/healthcheck", healthcheckRoute);
 app.use("/api/auth", authRoutes);
 app.use(authenticateUser);
 app.use("/api/user", userRoutes);
 app.use("/api/post", postRoutes);
+app.use("/api/community", communityRoutes);
 app.use("/api/like", likeRoutes);
 app.use("/api/comment", commentRoutes);
 app.use("/api/chatbot", chatbotRoutes);
