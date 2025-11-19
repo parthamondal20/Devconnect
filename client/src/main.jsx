@@ -21,6 +21,7 @@ const ProjectPage = lazy(() => import("./pages/ProjectPage.jsx"));
 const Jobs = lazy(() => import("./pages/Jobs.jsx"));
 const Community = lazy(() => import("./pages/Community.jsx"));
 const CommunityChatPage = lazy(() => import("./pages/CommunityChatPage.jsx"));
+const ChatPage = lazy(() => import("./pages/ChatPage.jsx"));
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path='' element={<Layout />}>
@@ -33,6 +34,7 @@ const router = createBrowserRouter(
       <Route path='/profile/:user_id' element={<Profile />} />
       <Route path='/community/:community_id' element={<CommunityChatPage />} />
       <Route path='/jobs' element={<Jobs />} />
+      <Route path='/chat/:conversation_id' element={<ChatPage />} />
       <Route path='/projects/:githubId' element={<ProjectPage />} />
       <Route path='/verify-otp' element={<OTPpage />} />
       <Route path='/questions' element={<QuestionsPage />} />
@@ -43,7 +45,7 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
 
     <Provider store={store}>
-      <Suspense fallback={<Loader />}>
+      <Suspense fallback={<Loader message='render going to take some time to start server...' />}>
         <RouterProvider router={router} />
       </Suspense>
     </Provider>

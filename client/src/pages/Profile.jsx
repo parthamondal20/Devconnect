@@ -8,6 +8,7 @@ import { setUser, clearUser } from "../features/authSlice";
 import { useNavigate, useParams } from "react-router-dom";
 import { uploadAvatar } from "../services/user";
 import { getUserProfile, followUser } from "../services/user";
+import { createConversation } from "../services/message";
 const ALL_SKILLS = [
     "React", "Node.js", "Express", "MongoDB", "Tailwind", "TypeScript",
     "Docker", "Git", "Next.js", "Python", "C++", "Firebase", "GraphQL",
@@ -75,6 +76,24 @@ const Profile = () => {
         });
         setIsEditing(false);
     };
+
+    const navigateChatRoom = async () => {
+        setLoading(true);
+        try {
+            if (!profileUser.conversation_id) {
+                const res = await createConversation([user._id, profileUser._id]);
+                profileUser.conversation_id = res._id;
+            }
+            navigate(`/chat/${profileUser.conversation_id}`, {
+                state: { currentUser: profileUser }
+            });
+        } catch (error) {
+            console.log(error);
+            showError("Failed to start chat");
+        } finally {
+            setLoading(false);
+        }
+    }
 
     const handleLogout = async () => {
         try {
@@ -233,7 +252,7 @@ const Profile = () => {
                             {isFollowing ? "Unfollow" : "Follow"}
                         </button>
                         <button
-                            onClick={() => showSuccess("Sent message! (not really, this is a demo)")}
+                            onClick={navigateChatRoom}
                             className="px-6 py-2.5 rounded-2xl w-full bg-gray-100 text-gray-900 hover:bg-gray-200 shadow-md hover:shadow-lg transition-all active:scale-95"
                         >
                             Message

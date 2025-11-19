@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 
 dotenv.config();
+mongoose.set("autoIndex", true);
 const connectDB = async () => {
   try {
     const connecttion = await mongoose.connect(process.env.MONGODB_URI);

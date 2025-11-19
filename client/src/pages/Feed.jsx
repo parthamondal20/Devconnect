@@ -34,7 +34,6 @@ const Feed = () => {
   const [openPostModal, setOpenPostModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("loading..");
-  const [animate, setAnimate] = useState(false);
   // for comments
   const [activePost, setActivePost] = useState(null);
   // Add new post to feed

@@ -63,7 +63,7 @@ const userSchema = new Schema(
       type: String,
       default: null
     },
-    githubUsername:{
+    githubUsername: {
       type: String,
       default: null
     },
@@ -80,7 +80,8 @@ const userSchema = new Schema(
     timestamps: true,
   }
 );
-
+userSchema.index({ username: 1 });
+userSchema.index({ email: 1 }, { unique: true });
 import jwt from "jsonwebtoken";
 userSchema.methods.generateAccessToken = function () {
   return jwt.sign(

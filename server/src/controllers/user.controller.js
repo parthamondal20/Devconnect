@@ -4,6 +4,7 @@ import ApiResponse from "../utils/ApiResponse.js";
 import ApiError from "../utils/ApiError.js";
 import jwt from "jsonwebtoken";
 import generateAccessAndRefreshToken from "../utils/generateAccessAndRefreshToken.js";
+import Conversation from "../models/conversation.model.js";
 const getUser = asyncHandler(async (req, res) => {
   const userId = req.user._id;
   console.log("user id is  : ", userId);
@@ -104,8 +105,14 @@ const getUserProfile = asyncHandler(async (req, res) => {
   const isFollowing = currentUserId
     ? user.followers.some(id => id.toString() === currentUserId.toString())
     : false;
+
+  const conversation = await Conversation.findOne({
+    members: { $all: [currentUserId, user_id] }
+  });
+
+  const conversation_id = conversation ? conversation._id : null;
   return res
     .status(200)
-    .json(new ApiResponse(200, "User profile fetched successfully", { ...user.toObject(), isFollowing }));
+    .json(new ApiResponse(200, "User profile fetched successfully", { ...user.toObject(), isFollowing, conversation_id }));
 });
 export { getUser, uploadProfilePicture, getUserProfile, followUser };
