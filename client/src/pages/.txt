@@ -1,15 +1,14 @@
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { User, Code, Users, FolderGit2, Edit2, X, LogOut, Camera, MapPin, Calendar, Link2, Heart, MessageCircle, Share2 } from "lucide-react";
+import { User, Code, Users, FolderGit2, Edit2, X, LogOut } from "lucide-react";
 import Loader from "../components/Loader";
 import { logout } from "../services/auth";
 import { showError, showSuccess } from "../utils/toast";
 import { setUser, clearUser } from "../features/authSlice";
 import { useNavigate, useParams } from "react-router-dom";
 import { uploadAvatar } from "../services/user";
-import { getUserProfile, followUser, getFollowers } from "../services/user";
+import { getUserProfile, followUser } from "../services/user";
 import { createConversation } from "../services/message";
-import FollowerModal from "../components/FollowModel";
 const ALL_SKILLS = [
     "React", "Node.js", "Express", "MongoDB", "Tailwind", "TypeScript",
     "Docker", "Git", "Next.js", "Python", "C++", "Firebase", "GraphQL",
@@ -31,9 +30,7 @@ const Profile = () => {
     const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
     const [profileUser, setProfileUser] = useState(null);
     const [isFollowing, setIsFollowing] = useState(false);
-    const [followersCount, setFollowersCount] = useState(profileUser?.followers?.length || 0);
-    const [showFollowers, setShowFollowers] = useState(false);
-    const [followersList, setFollowersList] = useState([]);
+    const [followersCount, setFollowersCount] = useState(0);
     const toggleSkill = (skill) => {
         setSkills((prev) =>
             prev.includes(skill)
@@ -77,16 +74,6 @@ const Profile = () => {
             skills,
         });
         setIsEditing(false);
-    };
-
-    const showFollowersList = async () => {
-        try {
-            const followers = await getFollowers();
-            setShowFollowers(true);
-            setFollowersList(followers);
-        } catch (error) {
-            console.log(error);
-        }
     };
 
     const navigateChatRoom = async () => {
@@ -137,7 +124,9 @@ const Profile = () => {
             setLoading(false);
         }
     }
-
+    if (loading || !profileUser) {
+        return <Loader message={message} loading={loading} />
+    }
     const handleFollow = async () => {
         try {
             setLoading(true);
@@ -157,11 +146,7 @@ const Profile = () => {
             setLoading(false);
         }
     }
-    if (loading || !profileUser) {
-        return <Loader message={message} loading={loading} />
-    }
-    const isOwnProfile = profileUser._id === user._id;
-
+    const isOwnProfile=profileUser._id === user._id;
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 dark:from-[#0a0e1a] dark:via-[#0d1117] dark:to-[#111827]">
             {/* Cover Image */}
@@ -179,7 +164,7 @@ const Profile = () => {
                                 <img
                                     src={avatarPreview}
                                     alt="avatar"
-                                    className="w-full h-full rounded-full object-cover bg-white dark:bg-gray-900 cursor-pointer "
+                                    className="w-full h-full rounded-full object-cover bg-white dark:bg-gray-900 cursor-pointer transition-transform group-hover:scale-105"
                                     onClick={() => setIsAvatarModalOpen(true)}
                                 />
                             </div>
@@ -233,10 +218,11 @@ const Profile = () => {
                                     <div className="flex gap-3">
                                         <button
                                             onClick={handleFollow}
-                                            className={`px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 ${isFollowing
-                                                ? "bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-700"
-                                                : "bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700"
-                                                }`}
+                                            className={`px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 ${
+                                                isFollowing
+                                                    ? "bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-700"
+                                                    : "bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700"
+                                            }`}
                                         >
                                             {isFollowing ? "Following" : "Follow"}
                                         </button>
@@ -278,18 +264,11 @@ const Profile = () => {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
                         <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/10 dark:from-blue-500/20 dark:to-blue-600/20 p-6 rounded-2xl border border-blue-500/20 hover:border-blue-500/40 transition-all cursor-pointer group">
                             <div className="flex items-center justify-between">
-                                <div
-                                    onClick={showFollowersList}
-                                >
+                                <div>
                                     <p className="text-3xl font-bold text-gray-900 dark:text-white">{followersCount || 0}</p>
                                     <p className="text-gray-600 dark:text-gray-400 mt-1">Followers</p>
                                 </div>
                                 <Users className="text-blue-500 w-8 h-8 group-hover:scale-110 transition-transform" />
-                                <FollowerModal
-                                    isOpen={showFollowers}
-                                    onClose={() => setShowFollowers(false)}
-                                    followers={followersList}
-                                />
                             </div>
                         </div>
                         <div className="bg-gradient-to-br from-green-500/10 to-green-600/10 dark:from-green-500/20 dark:to-green-600/20 p-6 rounded-2xl border border-green-500/20 hover:border-green-500/40 transition-all cursor-pointer group">
@@ -407,17 +386,18 @@ const Profile = () => {
 
                                             {/* Post Images */}
                                             {post.images?.length > 0 && (
-                                                <div className={`grid gap-2 mb-4 ${post.images.length === 1 ? 'grid-cols-1' :
+                                                <div className={`grid gap-2 mb-4 ${
+                                                    post.images.length === 1 ? 'grid-cols-1' :
                                                     post.images.length === 2 ? 'grid-cols-2' :
-                                                        post.images.length === 3 ? 'grid-cols-3' :
-                                                            'grid-cols-2'
-                                                    }`}>
+                                                    post.images.length === 3 ? 'grid-cols-3' :
+                                                    'grid-cols-2'
+                                                }`}>
                                                     {post.images.map((img, index) => (
                                                         <div key={index} className="rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700">
                                                             <img
                                                                 src={img.url}
                                                                 alt="post"
-                                                                className="w-full h-64 object-cover cursor-pointer "
+                                                                className="w-full h-64 object-cover hover:scale-105 transition-transform duration-300"
                                                             />
                                                         </div>
                                                     ))}
@@ -530,10 +510,11 @@ const Profile = () => {
                                         <button
                                             key={skill}
                                             onClick={() => toggleSkill(skill)}
-                                            className={`px-4 py-2 rounded-full text-sm font-medium transition-all transform hover:scale-105 ${skills.includes(skill)
-                                                ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
-                                                : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600"
-                                                }`}
+                                            className={`px-4 py-2 rounded-full text-sm font-medium transition-all transform hover:scale-105 ${
+                                                skills.includes(skill)
+                                                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
+                                                    : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600"
+                                            }`}
                                         >
                                             {skill}
                                         </button>

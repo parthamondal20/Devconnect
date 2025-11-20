@@ -31,7 +31,7 @@ const createPost = asyncHandler(async (req, res) => {
 });
 
 const getPosts = asyncHandler(async (req, res) => {
-  const posts = await Post.find({}).sort({ createdAt: -1 }).populate("user");
+  const posts = await Post.find({}).sort({ createdAt: -1 }).populate("user", "username avatar email");
 
   // If user is authenticated, annotate each post with whether the current user liked it
   const userId = req.user?._id ? String(req.user._id) : null;

@@ -5,6 +5,7 @@ import ApiError from "../utils/ApiError.js";
 import jwt from "jsonwebtoken";
 import generateAccessAndRefreshToken from "../utils/generateAccessAndRefreshToken.js";
 import Conversation from "../models/conversation.model.js";
+import Post from "../models/post.model.js";
 const getUser = asyncHandler(async (req, res) => {
   const userId = req.user._id;
   console.log("user id is  : ", userId);
@@ -109,10 +110,27 @@ const getUserProfile = asyncHandler(async (req, res) => {
   const conversation = await Conversation.findOne({
     members: { $all: [currentUserId, user_id] }
   });
-
+  const posts = await Post.find({ user: user_id }).sort({ createdAt: -1 });
   const conversation_id = conversation ? conversation._id : null;
   return res
     .status(200)
-    .json(new ApiResponse(200, "User profile fetched successfully", { ...user.toObject(), isFollowing, conversation_id }));
+    .json(new ApiResponse(200, "User profile fetched successfully", { ...user.toObject(), isFollowing, conversation_id, posts }));
 });
-export { getUser, uploadProfilePicture, getUserProfile, followUser };
+
+const getFollowers = asyncHandler(async (req, res) => {
+  const user_id = req?.user._id;
+  const user = await User.findById(user_id)
+    .populate("followers", "username avatar email")
+    .select("followers");
+
+  console.log("follower user is ", user);
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+  console.log("user followers are ", user.followers);
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Followers fetched successfully", user.followers));
+});
+
+export { getUser, uploadProfilePicture, getUserProfile, followUser, getFollowers };

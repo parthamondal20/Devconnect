@@ -40,4 +40,15 @@ const uploadAvatar = async (formdata) => {
     throw error;
   }
 };
-export { getUser, uploadAvatar, getUserProfile, followUser };
+
+
+const getFollowers = async () => {
+  try {
+    const res = await api.get("/user/followers");
+    console.log(res);
+    return res.data.data;
+  } catch (error) {
+    throw error;
+  }
+};
+export { getUser, uploadAvatar, getUserProfile, followUser, getFollowers };
