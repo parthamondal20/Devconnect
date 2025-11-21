@@ -22,6 +22,7 @@ const Jobs = lazy(() => import("./pages/Jobs.jsx"));
 const Community = lazy(() => import("./pages/Community.jsx"));
 const CommunityChatPage = lazy(() => import("./pages/CommunityChatPage.jsx"));
 const ChatPage = lazy(() => import("./pages/ChatPage.jsx"));
+const MessagePage = lazy(() => import("./pages/MessagePage.jsx"));
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path='' element={<Layout />}>
@@ -38,6 +39,7 @@ const router = createBrowserRouter(
       <Route path='/projects/:githubId' element={<ProjectPage />} />
       <Route path='/verify-otp' element={<OTPpage />} />
       <Route path='/questions' element={<QuestionsPage />} />
+      <Route path='/messages' element={<MessagePage />} />
     </Route>
   )
 )

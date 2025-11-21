@@ -3,127 +3,150 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 /**
  * Props:
- *  - images: [{ url, publicId? }, ...]
- *  - onImageClick: (url) => void
- *  - className: optional wrapper classes
+ * - images: [{ url, publicId? }, ...]
+ * - onImageClick: (url) => void
+ * - className: optional wrapper classes
  */
 export default function ImageCarousel({ images = [], onImageClick, className = "" }) {
     const [index, setIndex] = useState(0);
-    const containerRef = useRef(null);
-    const touchStartX = useRef(null);
-    const touchEndX = useRef(null);
+    const scrollContainerRef = useRef(null);
 
+    // Reset to first slide when images change
     useEffect(() => {
-        // reset index if images change length or new images loaded
-        setIndex(0);
-    }, [images.length]);
-
-    const prev = useCallback(() => {
-        setIndex((i) => (i <= 0 ? images.length - 1 : i - 1));
-    }, [images.length]);
-
-    const next = useCallback(() => {
-        setIndex((i) => (i >= images.length - 1 ? 0 : i + 1));
-    }, [images.length]);
-
-    // keyboard navigation
-    useEffect(() => {
-        const onKey = (e) => {
-            if (e.key === "ArrowLeft") prev();
-            else if (e.key === "ArrowRight") next();
-        };
-        window.addEventListener("keydown", onKey);
-        return () => window.removeEventListener("keydown", onKey);
-    }, [prev, next]);
-
-    // touch handlers for mobile swipe
-    const onTouchStart = (e) => {
-        touchStartX.current = e.touches[0].clientX;
-    };
-    const onTouchMove = (e) => {
-        touchEndX.current = e.touches[0].clientX;
-    };
-    const onTouchEnd = () => {
-        if (touchStartX.current == null || touchEndX.current == null) return;
-        const diff = touchStartX.current - touchEndX.current;
-        const threshold = 50; // minimum px for swipe
-        if (diff > threshold) {
-            next();
-        } else if (diff < -threshold) {
-            prev();
+        if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollTo({ left: 0, behavior: 'instant' });
+            setIndex(0);
         }
-        touchStartX.current = null;
-        touchEndX.current = null;
+    }, [images.length]);
+
+    // Handle scroll to update active index logic (Syncs scroll position with dots)
+    const handleScroll = useCallback(() => {
+        if (!scrollContainerRef.current) return;
+        const { scrollLeft, clientWidth } = scrollContainerRef.current;
+        // Calculate index based on scroll position
+        const newIndex = Math.round(scrollLeft / clientWidth);
+
+        if (newIndex !== index && newIndex >= 0 && newIndex < images.length) {
+            setIndex(newIndex);
+        }
+    }, [index, images.length]);
+
+    // Helper to scroll to specific index programmatically
+    const scrollToIndex = (i) => {
+        if (!scrollContainerRef.current) return;
+        const width = scrollContainerRef.current.clientWidth;
+        scrollContainerRef.current.scrollTo({
+            left: width * i,
+            behavior: 'smooth'
+        });
+    };
+
+    const prev = (e) => {
+        e?.stopPropagation();
+        const newIndex = index === 0 ? images.length - 1 : index - 1;
+        scrollToIndex(newIndex);
+    };
+
+    const next = (e) => {
+        e?.stopPropagation();
+        const newIndex = index === images.length - 1 ? 0 : index + 1;
+        scrollToIndex(newIndex);
     };
 
     if (!images || images.length === 0) return null;
 
     return (
         <div
-            ref={containerRef}
-            className={`relative w-full overflow-hidden rounded-xl ${className}`}
-            onTouchStart={onTouchStart}
-            onTouchMove={onTouchMove}
-            onTouchEnd={onTouchEnd}
-            aria-roledescription="carousel"
+            className={`relative group w-full overflow-hidden bg-gray-100 dark:bg-gray-900 select-none ${className}`}
+            role="region"
+            aria-label="Image Carousel"
         >
-            {/* Slides */}
+            {/* Scrollable Container 
+              - snap-x snap-mandatory: Defines the snap behavior
+              - overflow-x-auto: Enables native scrolling (Touch friendly)
+              - scrollbar-hide: Utility to hide scrollbars
+            */}
             <div
-                className="flex transition-transform duration-400 ease-out"
+                ref={scrollContainerRef}
+                onScroll={handleScroll}
+                className="flex w-full h-full overflow-x-auto snap-x snap-mandatory scroll-smooth scrollbar-hide"
                 style={{
-                    transform: `translateX(-${index * 100}%)`,
+                    scrollbarWidth: 'none', /* Firefox */
+                    msOverflowStyle: 'none'  /* IE 10+ */
                 }}
             >
+                {/* Inline style to hide webkit scrollbar ensuring self-contained component */}
+                <style>{`
+                    .scrollbar-hide::-webkit-scrollbar {
+                        display: none;
+                    }
+                `}</style>
+
                 {images.map((img, i) => (
                     <div
                         key={img.publicId || img.url || i}
-                        className="flex-shrink-0 w-full max-h-[650px] md:max-h-[520px] lg:max-h-[600px] overflow-hidden"
+                        className="relative flex-shrink-0 w-full h-full snap-center flex items-center justify-center bg-black/5"
                         onClick={() => onImageClick && onImageClick(img.url)}
                     >
                         <img
                             src={img.url}
-                            alt={`slide-${i}`}
-                            className="w-full h-full object-cover cursor-pointer"
+                            alt={`Slide ${i + 1}`}
+                            className="w-full h-full object-cover max-h-[600px] cursor-pointer select-none"
                             draggable={false}
+                            loading={i === 0 ? "eager" : "lazy"}
                         />
                     </div>
                 ))}
             </div>
 
-            {/* Left / Right Buttons */}
+            {/* Controls (Only if > 1 image) */}
             {images.length > 1 && (
                 <>
-                    {index > 0 && <button
+                    {/* Gradient Overlay for Dots Visibility */}
+                    <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
+
+                    {/* Left Button - Hidden on mobile (touch devices), visible on sm+ */}
+                    <button
                         onClick={prev}
-                        className="absolute left-2 top-1/2 -translate-y-1/2 z-30 p-2 rounded-full bg-white/90 dark:bg-black/60 hover:scale-105 shadow-sm"
-                        aria-label="Previous slide"
+                        className="absolute left-3 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/30 backdrop-blur-md text-white border border-white/10 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-black/50 hover:scale-110 active:scale-95 hidden sm:flex items-center justify-center"
+                        aria-label="Previous image"
                     >
-                        <ChevronLeft size={18} />
-                    </button>}
+                        <ChevronLeft size={20} />
+                    </button>
 
-                    {index < images.length - 1 && <button
+                    {/* Right Button - Hidden on mobile, visible on sm+ */}
+                    <button
                         onClick={next}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 z-30 p-2 rounded-full bg-white/90 dark:bg-black/60 hover:scale-105 shadow-sm"
-                        aria-label="Next slide"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/30 backdrop-blur-md text-white border border-white/10 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-black/50 hover:scale-110 active:scale-95 hidden sm:flex items-center justify-center"
+                        aria-label="Next image"
                     >
-                        <ChevronRight size={18} />
-                    </button>}
-                </>
-            )}
+                        <ChevronRight size={20} />
+                    </button>
 
-            {/* Dots */}
-            {images.length > 1 && (
-                <div className="absolute left-1/2 -translate-x-1/2 bottom-3 z-30 flex gap-2">
-                    {images.map((_, i) => (
-                        <button
-                            key={i}
-                            onClick={() => setIndex(i)}
-                            className={`w-2 h-2 rounded-full transition-transform ${i === index ? "scale-110" : "opacity-60"
-                                } bg-white dark:bg-gray-200/90`}
-                            aria-label={`Go to slide ${i + 1}`}
-                        />
-                    ))}
-                </div>
+                    {/* Pagination Dots - Click scrolls to position */}
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+                        {images.map((_, i) => (
+                            <button
+                                key={i}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    scrollToIndex(i);
+                                }}
+                                className={`h-2 rounded-full transition-all duration-300 shadow-sm ${i === index
+                                        ? "w-6 bg-white"
+                                        : "w-2 bg-white/50 hover:bg-white/80"
+                                    }`}
+                                aria-label={`Go to slide ${i + 1}`}
+                                aria-current={i === index ? "true" : "false"}
+                            />
+                        ))}
+                    </div>
+
+                    {/* Image Counter */}
+                    <div className="absolute top-4 right-4 z-20 px-2 py-1 rounded-md bg-black/50 backdrop-blur-sm text-white text-xs font-medium">
+                        {index + 1} / {images.length}
+                    </div>
+                </>
             )}
         </div>
     );

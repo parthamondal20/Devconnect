@@ -123,11 +123,9 @@ const getFollowers = asyncHandler(async (req, res) => {
     .populate("followers", "username avatar email")
     .select("followers");
 
-  console.log("follower user is ", user);
   if (!user) {
     throw new ApiError(404, "User not found");
   }
-  console.log("user followers are ", user.followers);
   return res
     .status(200)
     .json(new ApiResponse(200, "Followers fetched successfully", user.followers));
