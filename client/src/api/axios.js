@@ -3,6 +3,7 @@ import axios from "axios";
 const api = axios.create({
   baseURL: import.meta.env.VITE_BACKEND_URL,
   withCredentials: true,
+  timeout: 10000,
 });
 
 let isRefreshing = false;
@@ -41,8 +42,8 @@ api.interceptors.response.use(
       } catch (err) {
         isRefreshing = false;
         processQueue(err);
-        localStorage.removeItem("user");
-        window.location.href = "/signin";
+        localStorage.removeItem("appstore");
+        window.location.href = "/";
         return Promise.reject(err);
       }
     }

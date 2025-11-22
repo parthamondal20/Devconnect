@@ -21,8 +21,8 @@ import { likeRequest } from "../services/like";
 import debounce from "lodash/debounce";
 import { toast } from "react-hot-toast";
 import CommentModal from "../components/CommentModal";
+import PostLoader from "../components/PostLoader";
 // Sidebar import removed per request
-
 // Helper for relative time (Simple version)
 const timeAgo = (date) => {
   const seconds = Math.floor((new Date() - new Date(date)) / 1000);
@@ -55,7 +55,7 @@ const Feed = () => {
   // eslint-disable-next-line no-unused-vars
   const [message, setMessage] = useState("loading..");
   const [activePost, setActivePost] = useState(null);
-
+  const [postloading, setPostLoading] = useState(false);
   // Placeholder for missing handleFollow function
   const handleFollow = async (userId) => {
     toast.success("Follow feature coming soon!");
@@ -96,6 +96,12 @@ const Feed = () => {
   };
 
   useEffect(() => {
+    if (post?._id) {
+      setPosts((prev) => [post, ...prev]);
+    }
+  }, [post]);
+
+  useEffect(() => {
     const fetchPosts = async () => {
       try {
         setLoading(true);
@@ -109,7 +115,7 @@ const Feed = () => {
       }
     };
     fetchPosts();
-  }, [post]);
+  }, []);
 
   const handleDelete = async (postId) => {
     await toast.promise(

@@ -12,15 +12,12 @@ import {
   AtSign,
   Search
 } from "lucide-react";
-
-// --- MOCKS FOR PREVIEW ---
-const useDispatch = () => () => { }; // Mock dispatch
-const createPost = async (data) => new Promise(resolve => setTimeout(resolve, 1500)); // Mock API
-const setPost = (post) => ({ type: 'SET_POST', payload: post }); // Mock action
-const showSuccess = (msg) => alert(`Success: ${msg}`); // Mock toast
-const showError = (msg) => alert(`Error: ${msg}`); // Mock toast
-
+import PostLoader from "../components/PostLoader";
+import { useDispatch } from "react-redux";
+import { setPost } from "../features/postSlice";
 // Enhanced Mock Emoji Picker Component
+import { showError, showSuccess } from "../utils/toast";
+import { createPost } from "../services/post";
 const MockEmojiPicker = ({ onEmojiClick }) => {
   const [search, setSearch] = useState("");
 
@@ -167,7 +164,6 @@ const PostModal = ({ isOpen = true, onClose, user }) => {
       setSelectedImages([]);
       setText("");
       if (onClose) onClose();
-
     } catch (err) {
       showError(err.response?.data?.message || "Failed to create post");
       console.error("Error posting:", err);
@@ -175,7 +171,9 @@ const PostModal = ({ isOpen = true, onClose, user }) => {
       setLoading(false);
     }
   };
-
+  if (loading) {
+    return <PostLoader loading={loading} />;
+  }
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-md p-4 animate-in fade-in duration-300">
 
