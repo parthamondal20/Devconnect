@@ -19,35 +19,40 @@ const createConversation = asyncHandler(async (req, res) => {
 });
 
 // Get conversations for a user
-const getUserConversations = asyncHandler(async (req, res) => {
+const getUserConversationById = asyncHandler(async (req, res) => {
     const { conversationId } = req.params;
     const messages = await Message.find({ conversationId }).sort({ createdAt: 1 });
     return res.status(200).json(new ApiResponse(200, "Messages fetched successfully", messages));
 });
 
+const getUserConversations = asyncHandler(async (req, res) => {
+    const userId = req.user._id;
+    const conversations = await Conversation.find({ members: userId }).populate("members", "username avatar email").populate("lastMessage");
+    return res.status(200).json(new ApiResponse(200, "Conversations fetched successfully", conversations));
+});
 const sendMessage = asyncHandler(async (req, res) => {
     const { conversationId, text } = req.body;
     const senderId = req.user._id;
-    
+
     if (!conversationId || !text) {
         throw new ApiError(400, "conversationId and text are required");
     }
-    
+
     const message = await Message.create({ conversationId, sender: senderId, text });
     await Conversation.findByIdAndUpdate(conversationId, {
         lastMessage: message._id,
         updatedAt: Date.now(),
     });
-    
+
     const io = req.app.get("io");
     if (!io) {
         throw new ApiError(500, "Socket.io not initialized");
     }
-    
+
     const roomId = String(conversationId);
     io.to(roomId).emit("newMessage", message);
-    
+
     return res.status(201).json(new ApiResponse(201, "Message sent successfully", message));
 });
 
-export { createConversation, getUserConversations, sendMessage };
+export { createConversation, getUserConversationById, sendMessage, getUserConversations };

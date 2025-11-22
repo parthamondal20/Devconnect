@@ -1,71 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BrowserRouter as Router, Link } from "react-router-dom";
 import { Search, MoreVertical, CheckCheck, Plus } from "lucide-react";
-
-// Mock Data for Conversations
-const MOCK_CONVERSATIONS = [
-    {
-        id: "1",
-        user: {
-            _id: "u1",
-            username: "Alex Johnson",
-            avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex",
-            isOnline: true,
-        },
-        lastMessage: "Hey! Did you check the latest PR?",
-        timestamp: "2m ago",
-        unread: 2,
-    },
-    {
-        id: "2",
-        user: {
-            _id: "u2",
-            username: "Sarah Williams",
-            avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
-            isOnline: false,
-        },
-        lastMessage: "Sure, let's catch up tomorrow.",
-        timestamp: "1h ago",
-        unread: 0,
-    },
-    {
-        id: "3",
-        user: {
-            _id: "u3",
-            username: "DevConnect Team",
-            avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=DevConnect",
-            isOnline: false,
-        },
-        lastMessage: "Welcome to the community! 🎉",
-        timestamp: "1d ago",
-        unread: 0,
-    },
-    {
-        id: "4",
-        user: {
-            _id: "u4",
-            username: "Michael Chen",
-            avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Mike",
-            isOnline: true,
-        },
-        lastMessage: "Can you send me the Figma file?",
-        timestamp: "2d ago",
-        unread: 0,
-    },
-    {
-        id: "5",
-        user: {
-            _id: "u5",
-            username: "Emily Davis",
-            avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Emily",
-            isOnline: false,
-        },
-        lastMessage: "Thanks for the help!",
-        timestamp: "3d ago",
-        unread: 0,
-    },
-];
-
+import { getConversations } from "../services/message";
+import { useSelector } from "react-redux";
+const timeAgo = (date) => {
+    const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+    let interval = seconds / 31536000;
+    if (interval > 1) return Math.floor(interval) + "y";
+    interval = seconds / 2592000;
+    if (interval > 1) return Math.floor(interval) + "mo";
+    interval = seconds / 86400;
+    if (interval > 1) return Math.floor(interval) + "d";
+    interval = seconds / 3600;
+    if (interval > 1) return Math.floor(interval) + "h";
+    interval = seconds / 60;
+    if (interval > 1) return Math.floor(interval) + "m";
+    return "Just now";
+};
 // Mock Data for Active Users Section
 const MOCK_ACTIVE_USERS = [
     { id: "au1", username: "Alex", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex" },
@@ -78,11 +29,21 @@ const MOCK_ACTIVE_USERS = [
 
 const Messages = () => {
     const [searchTerm, setSearchTerm] = useState("");
-    const [conversations, setConversations] = useState(MOCK_CONVERSATIONS);
-
-    const filteredConversations = conversations.filter((c) =>
-        c.user.username.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const [conversations, setConversations] = useState([]);
+    const user = useSelector((state) => state.auth.user);
+    useEffect(() => {
+        const fetchConversations = async () => {
+            try {
+                // Replace with actual API call
+                const data = await getConversations();
+                console.log("Fetched conversations:", data);
+                setConversations(data);
+            } catch (error) {
+                console.error("Error fetching conversations:", error);
+            }
+        };
+        fetchConversations();
+    }, [])
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-black text-gray-900 dark:text-gray-100 py-6">
@@ -149,57 +110,73 @@ const Messages = () => {
                         Chats
                     </h2>
                     <div className="space-y-2">
-                        {filteredConversations.length > 0 ? (
-                            filteredConversations.map((convo) => (
-                                <Link
-                                    to={`/chat/${convo.id}`}
-                                    key={convo.id}
-                                    className="group flex items-center gap-4 p-4 bg-white dark:bg-gray-900 hover:bg-blue-50 dark:hover:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm transition-all cursor-pointer"
-                                >
-                                    {/* Avatar */}
-                                    <div className="relative shrink-0">
-                                        <img
-                                            src={convo.user.avatar}
-                                            alt={convo.user.username}
-                                            className="w-14 h-14 rounded-full object-cover bg-gray-200 dark:bg-gray-800"
-                                        />
-                                        {convo.user.isOnline && (
-                                            <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full"></span>
+                        {conversations.length > 0 ? (
+                            conversations.map((convo) => {
+                                // Determine chat partner ONCE
+                                const isSecond = user._id === convo.members[1]._id;
+                                const partner = isSecond ? convo.members[0] : convo.members[1];
+
+                                return (
+                                    <Link
+                                        key={convo._id}
+                                        to={`/chat/${convo._id}`}
+                                        state={{ currentUser: partner }}
+                                        className="group flex items-center gap-4 p-4 bg-white dark:bg-gray-900 hover:bg-blue-50 dark:hover:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm transition-all cursor-pointer"
+                                    >
+                                        {/* Avatar */}
+                                        <div className="relative shrink-0">
+                                            <img
+                                                src={partner.avatar}
+                                                alt={partner.username}
+                                                className="w-14 h-14 rounded-full object-cover bg-gray-200 dark:bg-gray-800"
+                                            />
+                                            {partner.isOnline && (
+                                                <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full"></span>
+                                            )}
+                                        </div>
+
+                                        {/* Content */}
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex justify-between items-baseline mb-1">
+                                                <h3 className="font-semibold text-gray-900 dark:text-white truncate pr-2">
+                                                    {partner.username}
+                                                </h3>
+                                                <span className="text-xs text-gray-500 dark:text-gray-400 shrink-0">
+                                                    {timeAgo(convo.updatedAt)}
+                                                </span>
+                                            </div>
+
+                                            <p
+                                                className={`text-sm truncate pr-4 ${convo.lastMessage.status === "sent"
+                                                    ? "text-gray-900 dark:text-gray-100 font-medium"
+                                                    : "text-gray-500 dark:text-gray-400"
+                                                    }`}
+                                            >
+                                                {convo.lastMessage.status !== "sent" && (
+                                                    <CheckCheck size={14} className="inline mr-1 text-blue-500" />
+                                                )}
+                                                {convo.lastMessage.text}
+                                            </p>
+                                        </div>
+
+                                        {/* Unread Badge */}
+                                        {convo.lastMessage.status > 0 && (
+                                            <div className="shrink-0">
+                                                <span className="flex items-center justify-center w-5 h-5 bg-blue-600 text-white text-xs font-bold rounded-full">
+                                                    {convo.lastMessage.status}
+                                                </span>
+                                            </div>
                                         )}
-                                    </div>
-
-                                    {/* Content */}
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex justify-between items-baseline mb-1">
-                                            <h3 className="font-semibold text-gray-900 dark:text-white truncate pr-2">
-                                                {convo.user.username}
-                                            </h3>
-                                            <span className="text-xs text-gray-500 dark:text-gray-400 shrink-0">
-                                                {convo.timestamp}
-                                            </span>
-                                        </div>
-                                        <p className={`text-sm truncate pr-4 ${convo.unread > 0 ? "text-gray-900 dark:text-gray-100 font-medium" : "text-gray-500 dark:text-gray-400"}`}>
-                                            {convo.unread === 0 && <CheckCheck size={14} className="inline mr-1 text-blue-500" />}
-                                            {convo.lastMessage}
-                                        </p>
-                                    </div>
-
-                                    {/* Unread Badge */}
-                                    {convo.unread > 0 && (
-                                        <div className="shrink-0">
-                                            <span className="flex items-center justify-center w-5 h-5 bg-blue-600 text-white text-xs font-bold rounded-full">
-                                                {convo.unread}
-                                            </span>
-                                        </div>
-                                    )}
-                                </Link>
-                            ))
+                                    </Link>
+                                );
+                            })
                         ) : (
                             <div className="text-center py-12 text-gray-500 dark:text-gray-400">
                                 No conversations found.
                             </div>
                         )}
                     </div>
+
                 </div>
             </div>
         </div>

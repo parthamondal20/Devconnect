@@ -10,6 +10,7 @@ export default function ChatPage() {
     const location = useLocation();
     const currentUser = location.state?.currentUser;
     const listenerAttachedRef = useRef(false);
+    const messageIdsRef = useRef(new Set());
 
     // Clean up old listeners on hot-reload (dev mode)
     useEffect(() => {
@@ -25,6 +26,8 @@ export default function ChatPage() {
             try {
                 const res = await getConversationById(conversation_id);
                 setMessages(res);
+                // Populate the Set with existing message IDs
+                messageIdsRef.current = new Set(res.map((msg) => msg._id.toString()));
             } catch (err) {
                 console.error("Error loading messages:", err);
             }
@@ -41,6 +44,12 @@ export default function ChatPage() {
         // Attach newMessage listener ONCE - never remove it
         if (!listenerAttachedRef.current) {
             socket.on("newMessage", (msg) => {
+                // O(1) deduplication using Set
+                const msgId = msg._id.toString();
+                if (messageIdsRef.current.has(msgId)) {
+                    return; // Message already exists, skip
+                }
+                messageIdsRef.current.add(msgId);
                 setMessages((prev) => [...prev, msg]);
             });
             listenerAttachedRef.current = true;
