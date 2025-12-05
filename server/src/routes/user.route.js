@@ -5,10 +5,11 @@ import {
   uploadProfilePicture,
   getUserProfile,
   followUser,
-  getFollowers
+  getFollowers,
+  searchUser
 } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
-
+router.get("/search",searchUser);
 router.get("/me", getUser);
 router.get("/followers", getFollowers);
 router.put("/upload-avatar", upload.single("file"), uploadProfilePicture);

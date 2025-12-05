@@ -131,4 +131,37 @@ const getFollowers = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, "Followers fetched successfully", user.followers));
 });
 
-export { getUser, uploadProfilePicture, getUserProfile, followUser, getFollowers };
+
+const searchUser = asyncHandler(async (req, res) => {
+  const query = req.query.q;
+  if (!query) {
+    return res.status(200).json(new ApiResponse(200, "empty search", []));
+  }
+  const users = await User.aggregate([
+    {
+      $search: {
+        index: "default", // change if your index name is different
+        autocomplete: {
+          query: query,
+          path: "username",
+          fuzzy: {
+            maxEdits: 1
+          }
+        }
+      }
+    },
+    { $limit: 10 },
+    {
+      $project: {
+        username: 1,
+        avatar: 1,
+        _id: 1
+      }
+    }
+  ]);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "search results", users));
+})
+export { getUser, uploadProfilePicture, getUserProfile, followUser, getFollowers, searchUser };

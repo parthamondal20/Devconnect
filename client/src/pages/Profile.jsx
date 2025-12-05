@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { 
-  User, Code, Users, FolderGit2, Edit2, X, LogOut, 
-  Camera, MapPin, Calendar, Link2, Heart, MessageCircle, 
-  Share2, Briefcase 
+import {
+  User, Code, Users, FolderGit2, Edit2, X, LogOut,
+  Camera, MapPin, Calendar, Link2, Heart, MessageCircle,
+  Share2, Briefcase
 } from "lucide-react";
 import Loader from "../components/Loader";
 import { logout } from "../services/auth";
@@ -26,7 +26,7 @@ const Profile = () => {
   const { user_id } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  
+
   const [isEditing, setIsEditing] = useState(false);
   const [bio, setBio] = useState("");
   const [about, setAbout] = useState("");
@@ -168,7 +168,7 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#09090b] transition-colors duration-300">
-      
+
       {/* --- 1. Cover Image --- */}
       <div className="h-48 md:h-64 lg:h-80 w-full relative overflow-hidden group">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 animate-gradient-xy"></div>
@@ -177,13 +177,13 @@ const Profile = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
-        
+
         {/* --- 2. Profile Header --- */}
         <div className="relative -mt-16 md:-mt-24 mb-6">
           <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800 p-6 md:p-8">
-            
+
             <div className="flex flex-col md:flex-row items-center md:items-end gap-6">
-              
+
               {/* Avatar */}
               <div className="relative shrink-0">
                 <div className="w-32 h-32 md:w-40 md:h-40 rounded-full p-1.5 bg-white dark:bg-gray-900 ring-1 ring-gray-200 dark:ring-gray-700">
@@ -243,11 +243,10 @@ const Profile = () => {
                       <>
                         <button
                           onClick={handleFollow}
-                          className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl font-semibold shadow-sm transition-all text-sm ${
-                            isFollowing
+                          className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl font-semibold shadow-sm transition-all text-sm ${isFollowing
                               ? "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-700"
                               : "bg-blue-600 text-white hover:bg-blue-700 border border-transparent"
-                          }`}
+                            }`}
                         >
                           {isFollowing ? "Following" : "Follow"}
                         </button>
@@ -288,90 +287,90 @@ const Profile = () => {
 
         {/* --- 3. Main Content Grid --- */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          
+
           {/* Left Rail: Stats & Details (Desktop: col-span-4, Mobile: Top) */}
           <div className="lg:col-span-4 space-y-6">
-            
+
             {/* Stats Cards */}
             <div className="grid grid-cols-2 gap-3 md:gap-4">
               <div onClick={showFollowersList} className="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-gray-200 dark:border-gray-800 cursor-pointer hover:border-blue-500/50 transition group">
                 <div className="flex justify-between items-start">
-                   <div>
-                     <p className="text-2xl font-bold text-gray-900 dark:text-white">{followersCount}</p>
-                     <p className="text-xs text-gray-500 mt-1">Followers</p>
-                   </div>
-                   <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-blue-600 group-hover:scale-110 transition">
-                     <Users size={18} />
-                   </div>
+                  <div>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{followersCount}</p>
+                    <p className="text-xs text-gray-500 mt-1">Followers</p>
+                  </div>
+                  <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-blue-600 group-hover:scale-110 transition">
+                    <Users size={18} />
+                  </div>
                 </div>
               </div>
 
               <div className="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-gray-200 dark:border-gray-800">
                 <div className="flex justify-between items-start">
-                   <div>
-                     <p className="text-2xl font-bold text-gray-900 dark:text-white">{profileUser.following?.length || 0}</p>
-                     <p className="text-xs text-gray-500 mt-1">Following</p>
-                   </div>
-                   <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg text-green-600">
-                     <Users size={18} />
-                   </div>
+                  <div>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{profileUser.following?.length || 0}</p>
+                    <p className="text-xs text-gray-500 mt-1">Following</p>
+                  </div>
+                  <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg text-green-600">
+                    <Users size={18} />
+                  </div>
                 </div>
               </div>
 
               <div className="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-gray-200 dark:border-gray-800">
-                 <div className="flex justify-between items-start">
-                   <div>
-                     <p className="text-2xl font-bold text-gray-900 dark:text-white">{profileUser.posts?.length || 0}</p>
-                     <p className="text-xs text-gray-500 mt-1">Posts</p>
-                   </div>
-                   <div className="p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-purple-600">
-                     <Code size={18} />
-                   </div>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{profileUser.posts?.length || 0}</p>
+                    <p className="text-xs text-gray-500 mt-1">Posts</p>
+                  </div>
+                  <div className="p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-purple-600">
+                    <Code size={18} />
+                  </div>
                 </div>
               </div>
 
               <div className="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-gray-200 dark:border-gray-800 cursor-pointer hover:border-yellow-500/50 transition">
-                 <div className="flex justify-between items-start">
-                   <div>
-                     <p className="text-2xl font-bold text-gray-900 dark:text-white">8</p>
-                     <p className="text-xs text-gray-500 mt-1">Projects</p>
-                   </div>
-                   <div className="p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg text-yellow-600">
-                     <FolderGit2 size={18} />
-                   </div>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">8</p>
+                    <p className="text-xs text-gray-500 mt-1">Projects</p>
+                  </div>
+                  <div className="p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg text-yellow-600">
+                    <FolderGit2 size={18} />
+                  </div>
                 </div>
               </div>
             </div>
 
-             {/* About Section */}
-             <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5 md:p-6">
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                  <User size={20} className="text-blue-500" /> About
-                </h3>
-                <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed whitespace-pre-line">
-                  {about || "I'm a passionate developer who loves building full-stack web applications using the MERN stack."}
-                </p>
-             </div>
+            {/* About Section */}
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5 md:p-6">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <User size={20} className="text-blue-500" /> About
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed whitespace-pre-line">
+                {about || "I'm a passionate developer who loves building full-stack web applications using the MERN stack."}
+              </p>
+            </div>
 
-             {/* Skills Section */}
-             <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5 md:p-6">
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                  <Code size={20} className="text-purple-500" /> Skills
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {skills.length > 0 ? skills.map((skill) => (
-                    <span key={skill} className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg text-xs font-medium border border-gray-200 dark:border-gray-700">
-                      {skill}
-                    </span>
-                  )) : <p className="text-sm text-gray-500">No skills listed.</p>}
-                </div>
-             </div>
+            {/* Skills Section */}
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5 md:p-6">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <Code size={20} className="text-purple-500" /> Skills
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {skills.length > 0 ? skills.map((skill) => (
+                  <span key={skill} className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg text-xs font-medium border border-gray-200 dark:border-gray-700">
+                    {skill}
+                  </span>
+                )) : <p className="text-sm text-gray-500">No skills listed.</p>}
+              </div>
+            </div>
           </div>
 
           {/* Right Rail: Posts Feed (Desktop: col-span-8) */}
           <div className="lg:col-span-8 space-y-6">
             <h3 className="text-xl font-bold text-gray-900 dark:text-white px-1">Recent Activity</h3>
-            
+
             {!profileUser.posts?.length ? (
               <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-12 text-center">
                 <div className="w-16 h-16 bg-gray-50 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -412,15 +411,14 @@ const Profile = () => {
 
                     {/* Image Grid */}
                     {post.images?.length > 0 && (
-                      <div className={`grid gap-2 rounded-xl overflow-hidden ${
-                        post.images.length === 1 ? 'grid-cols-1' : 'grid-cols-2'
-                      }`}>
+                      <div className={`grid gap-2 rounded-xl overflow-hidden ${post.images.length === 1 ? 'grid-cols-1' : 'grid-cols-2'
+                        }`}>
                         {post.images.slice(0, 4).map((img, idx) => (
                           <div key={idx} className={`relative ${post.images.length === 1 ? 'aspect-video' : 'aspect-square'}`}>
-                            <img 
-                              src={img.url} 
-                              alt="post content" 
-                              className="absolute inset-0 w-full h-full object-cover hover:scale-105 transition-transform duration-500" 
+                            <img
+                              src={img.url}
+                              alt="post content"
+                              className="absolute inset-0 w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                             />
                           </div>
                         ))}
@@ -431,15 +429,15 @@ const Profile = () => {
                   {/* Post Actions */}
                   <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-800">
                     <div className="flex gap-6">
-                       <button className="flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-red-500 transition text-sm">
-                         <Heart size={18} /> <span>{post.likesCount || 0}</span>
-                       </button>
-                       <button className="flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-blue-500 transition text-sm">
-                         <MessageCircle size={18} /> <span>{post.commentsCount || 0}</span>
-                       </button>
-                       <button className="flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-green-500 transition text-sm">
-                         <Share2 size={18} /> <span>{post.shareCount || 0}</span>
-                       </button>
+                      <button className="flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-red-500 transition text-sm">
+                        <Heart size={18} /> <span>{post.likesCount || 0}</span>
+                      </button>
+                      <button className="flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-blue-500 transition text-sm">
+                        <MessageCircle size={18} /> <span>{post.commentsCount || 0}</span>
+                      </button>
+                      <button className="flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-green-500 transition text-sm">
+                        <Share2 size={18} /> <span>{post.shareCount || 0}</span>
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -460,17 +458,17 @@ const Profile = () => {
 
       {/* 2. Avatar Fullscreen Modal */}
       {isAvatarModalOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
           onClick={() => setIsAvatarModalOpen(false)}
         >
           <button className="absolute top-4 right-4 text-white/70 hover:text-white">
             <X size={32} />
           </button>
-          <img 
-            src={avatarPreview} 
-            alt="Fullscreen Avatar" 
-            className="max-w-full max-h-[85vh] rounded-2xl shadow-2xl" 
+          <img
+            src={avatarPreview}
+            alt="Fullscreen Avatar"
+            className="max-w-full max-h-[85vh] rounded-2xl shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           />
         </div>
@@ -480,7 +478,7 @@ const Profile = () => {
       {isEditing && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl border border-gray-200 dark:border-gray-800">
-            
+
             {/* Header */}
             <div className="p-5 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">Edit Profile</h2>
@@ -520,11 +518,10 @@ const Profile = () => {
                     <button
                       key={skill}
                       onClick={() => toggleSkill(skill)}
-                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
-                        skills.includes(skill)
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${skills.includes(skill)
                           ? "bg-blue-600 text-white"
                           : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                      }`}
+                        }`}
                     >
                       {skill}
                     </button>
@@ -535,13 +532,13 @@ const Profile = () => {
 
             {/* Footer */}
             <div className="p-5 border-t border-gray-100 dark:border-gray-800 flex justify-end gap-3">
-              <button 
+              <button
                 onClick={() => setIsEditing(false)}
                 className="px-5 py-2.5 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition"
               >
                 Cancel
               </button>
-              <button 
+              <button
                 onClick={handleSave}
                 className="px-5 py-2.5 rounded-xl bg-blue-600 text-white hover:bg-blue-700 font-medium shadow-lg shadow-blue-600/30 transition"
               >

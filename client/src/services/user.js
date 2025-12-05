@@ -51,4 +51,15 @@ const getFollowers = async () => {
     throw error;
   }
 };
-export { getUser, uploadAvatar, getUserProfile, followUser, getFollowers };
+
+
+const searchUser = async (query) => {
+  try {
+    const res = await api.get(`/user/search?q=${query}`);
+    console.log(res);
+    return res.data.data;
+  } catch (error) {
+    throw error;
+  }
+}
+export { getUser, uploadAvatar, getUserProfile, followUser, getFollowers, searchUser };

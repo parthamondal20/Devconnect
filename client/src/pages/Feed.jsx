@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Heart,
   MessageCircle,
@@ -14,7 +14,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import PostModal from "../components/PostModal";
 import { getPosts, deletePost } from "../services/post";
-import { setPost } from "../features/postSlice";
+import { setPost, clearPost } from "../features/postSlice";
 import Loader from "../components/Loader";
 import ImageCarousel from "../components/ImageCarousel";
 import { likeRequest } from "../services/like";
@@ -22,6 +22,8 @@ import debounce from "lodash/debounce";
 import { toast } from "react-hot-toast";
 import CommentModal from "../components/CommentModal";
 import PostLoader from "../components/PostLoader";
+import { SkeletonTheme } from 'react-loading-skeleton';
+import FeedLoader from "../components/FeedLoader";
 // Sidebar import removed per request
 // Helper for relative time (Simple version)
 const timeAgo = (date) => {
@@ -98,8 +100,9 @@ const Feed = () => {
   useEffect(() => {
     if (post?._id) {
       setPosts((prev) => [post, ...prev]);
+      dispatch(clearPost());
     }
-  }, [post]);
+  }, [post, dispatch]);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -148,7 +151,7 @@ const Feed = () => {
   }, [selectedImage]);
 
   if (loading) {
-    return <Loader message={message} loading={loading} />;
+    return <Loader loading={loading} />
   }
 
   return (

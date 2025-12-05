@@ -1,15 +1,7 @@
 // Add this to your tailwind.config.js to get the glitch effect and terminal cursor
 // theme: {
 //   extend: {
-//     animation: {
-//       'blink-cursor': 'blink 1s step-end infinite',
-//     },
-//     keyframes: {
-//       blink: {
-//         '0%, 100%': { opacity: 1 },
-//         '50%': { opacity: 0 },
-//       }
-//     }
+//     
 //   }
 // }
 

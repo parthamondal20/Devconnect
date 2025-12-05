@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import PostLoader from "../components/PostLoader";
 import { useDispatch } from "react-redux";
-import { setPost } from "../features/postSlice";
+import { setPost, clearPost } from "../features/postSlice";
 // Enhanced Mock Emoji Picker Component
 import { showError, showSuccess } from "../utils/toast";
 import { createPost } from "../services/post";
@@ -159,7 +159,6 @@ const PostModal = ({ isOpen = true, onClose, user }) => {
 
       dispatch(setPost(newPost));
       showSuccess("Post created successfully");
-
       // Reset state
       setSelectedImages([]);
       setText("");

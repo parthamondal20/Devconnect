@@ -5,7 +5,7 @@ const Home = () => {
     const { user } = useSelector((state) => state.auth);
     if (user) {
         // if already logged in, redirect to feed
-        return <Navigate to="/feed" />;
+        return <Navigate to="/feed" replace />;
     }
     return (
         <section className="flex flex-col items-center justify-center text-center px-6 py-20 bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
