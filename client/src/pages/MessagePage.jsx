@@ -1,8 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { BrowserRouter as Router, Link } from "react-router-dom";
 import { Search, MoreVertical, CheckCheck, Plus } from "lucide-react";
 import { getConversations } from "../services/message";
 import { useSelector } from "react-redux";
+
+// Helper function remains the same
 const timeAgo = (date) => {
     const seconds = Math.floor((new Date() - new Date(date)) / 1000);
     let interval = seconds / 31536000;
@@ -17,6 +19,7 @@ const timeAgo = (date) => {
     if (interval > 1) return Math.floor(interval) + "m";
     return "Just now";
 };
+
 // Mock Data for Active Users Section
 const MOCK_ACTIVE_USERS = [
     { id: "au1", username: "Alex", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex" },
@@ -30,20 +33,69 @@ const MOCK_ACTIVE_USERS = [
 const Messages = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [conversations, setConversations] = useState([]);
+    // New state to hold the results when searching
+    const [filteredConversations, setFilteredConversations] = useState([]);
+
+    // user state from Redux
     const user = useSelector((state) => state.auth.user);
+
+    // 1. Initial Data Fetch
     useEffect(() => {
         const fetchConversations = async () => {
             try {
                 // Replace with actual API call
                 const data = await getConversations();
-                console.log("Fetched conversations:", data);
                 setConversations(data);
+                // Initialize filteredConversations with all conversations
+                setFilteredConversations(data);
             } catch (error) {
                 console.error("Error fetching conversations:", error);
             }
         };
         fetchConversations();
-    }, [])
+    }, [user._id]) // Dependency added to re-fetch if user changes (good practice)
+
+    // 2. Search Logic (Filtering)
+    useEffect(() => {
+        const term = searchTerm.trim().toLowerCase();
+
+        if (!term) {
+            // If the search term is empty, display all conversations
+            setFilteredConversations(conversations);
+            return;
+        }
+
+        const searchResult = conversations.filter(convo => {
+            // Determine the chat partner based on the current user
+            // We use the same logic as in the render section to find the partner object
+            const partner = convo.members.find(member => member._id !== user._id);
+
+            // Safety check for partner existence
+            if (!partner) return false;
+
+            const partnerUsername = partner.username.toLowerCase();
+            const termLength = term.length;
+
+            // Perform prefix match (autocomplete) on the partner's username
+            // .substring(0, termLength) extracts the prefix
+            return partnerUsername.substring(0, termLength) === term;
+        });
+
+        // Update the filtered list with the search results
+        setFilteredConversations(searchResult);
+        console.log("Search Results:", searchResult);
+
+    }, [searchTerm, conversations, user._id]); // dependencies must include conversations and user._id
+
+    // Determine which list to render: the filtered list or the full list
+    // This is managed within the useEffect now, so we just use filteredConversations
+    const listToRender = filteredConversations;
+
+    // Add a check to handle the `user` object being potentially undefined on initial load
+    if (!user) {
+        return <div className="text-center py-20">Loading user data...</div>;
+    }
+
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-black text-gray-900 dark:text-gray-100 py-6">
@@ -71,7 +123,7 @@ const Messages = () => {
                     />
                 </div>
 
-                {/* Active Users Section */}
+                {/* Active Users Section (Remaining unchanged) */}
                 <div className="mb-8">
                     <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-4 uppercase tracking-wider">
                         Active Now
@@ -86,18 +138,18 @@ const Messages = () => {
                         </div>
 
                         {/* Active User List */}
-                        {MOCK_ACTIVE_USERS.map((user) => (
-                            <div key={user.id} className="flex flex-col items-center gap-2 min-w-[64px] cursor-pointer group">
+                        {MOCK_ACTIVE_USERS.map((activeUser) => ( // Renamed to activeUser to avoid confusion
+                            <div key={activeUser.id} className="flex flex-col items-center gap-2 min-w-[64px] cursor-pointer group">
                                 <div className="relative">
                                     <img
-                                        src={user.avatar}
-                                        alt={user.username}
+                                        src={activeUser.avatar}
+                                        alt={activeUser.username}
                                         className="w-16 h-16 rounded-full object-cover border-2 border-transparent group-hover:border-blue-500 transition-all p-0.5 bg-white dark:bg-gray-900"
                                     />
                                     <div className="absolute bottom-0.5 right-0.5 w-4 h-4 bg-green-500 border-[3px] border-white dark:border-black rounded-full"></div>
                                 </div>
                                 <span className="text-xs font-medium text-gray-600 dark:text-gray-300 group-hover:text-blue-500 transition-colors">
-                                    {user.username}
+                                    {activeUser.username}
                                 </span>
                             </div>
                         ))}
@@ -110,17 +162,21 @@ const Messages = () => {
                         Chats
                     </h2>
                     <div className="space-y-2">
-                        {conversations.length > 0 ? (
-                            conversations.map((convo) => {
-                                // Determine chat partner ONCE
-                                const isSecond = user._id === convo.members[1]._id;
-                                const partner = isSecond ? convo.members[0] : convo.members[1];
+                        {/* Use listToRender (filtered or full) */}
+                        {listToRender.length > 0 ? (
+                            listToRender.map((convo) => {
+                                // Determine chat partner using .find() for clarity and safety
+                                const partner = convo.members.find(member => member._id !== user._id);
+
+                                // Skip rendering if a partner cannot be determined
+                                if (!partner) return null;
 
                                 return (
                                     <Link
                                         key={convo._id}
                                         to={`/chat/${convo._id}`}
-                                        state={{ currentUser: partner }}
+                                        // The state prop is for sending data to the chat route
+                                        state={{ partnerData: partner }}
                                         className="group flex items-center gap-4 p-4 bg-white dark:bg-gray-900 hover:bg-blue-50 dark:hover:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm transition-all cursor-pointer"
                                     >
                                         {/* Avatar */}
@@ -147,20 +203,20 @@ const Messages = () => {
                                             </div>
 
                                             <p
-                                                className={`text-sm truncate pr-4 ${convo.lastMessage.status === "sent"
+                                                className={`text-sm truncate pr-4 ${convo.lastMessage && convo.lastMessage.status === "sent" // Added null check for lastMessage
                                                     ? "text-gray-900 dark:text-gray-100 font-medium"
                                                     : "text-gray-500 dark:text-gray-400"
                                                     }`}
                                             >
-                                                {convo.lastMessage.status !== "sent" && (
+                                                {convo.lastMessage && convo.lastMessage.status !== "sent" && (
                                                     <CheckCheck size={14} className="inline mr-1 text-blue-500" />
                                                 )}
-                                                {convo.lastMessage.text}
+                                                {convo.lastMessage ? convo.lastMessage.text : "Start a conversation"}
                                             </p>
                                         </div>
 
-                                        {/* Unread Badge */}
-                                        {convo.lastMessage.status > 0 && (
+                                        {/* Unread Badge (Assuming lastMessage.status is unread count) */}
+                                        {convo.lastMessage && convo.lastMessage.status > 0 && (
                                             <div className="shrink-0">
                                                 <span className="flex items-center justify-center w-5 h-5 bg-blue-600 text-white text-xs font-bold rounded-full">
                                                     {convo.lastMessage.status}
@@ -172,11 +228,10 @@ const Messages = () => {
                             })
                         ) : (
                             <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-                                No conversations found.
+                                {searchTerm ? "No results found for your search." : "No conversations found."}
                             </div>
                         )}
                     </div>
-
                 </div>
             </div>
         </div>

@@ -47,7 +47,7 @@ const Header = () => {
             }
         };
 
-        if (user && debouncedSearchQuery.length > 1) {
+        if (user && debouncedSearchQuery.length >= 1) {
             fetchSuggestions();
         } else if (debouncedSearchQuery.length <= 1) {
             setAutoSuggestions([]);
@@ -145,7 +145,6 @@ const Header = () => {
                                                 View all results for "{searchQuery.substring(0, 20)}..."
                                             </Link>
                                         </>
-
                                     ) : !loading && (
 
                                         /* Case 2: No Results Found (Display Message) */
