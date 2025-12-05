@@ -1,4 +1,6 @@
 import axios from "axios";
+import store from "../app/store";
+import { clearUser } from "../features/authSlice";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_BACKEND_URL,
@@ -52,7 +54,8 @@ api.interceptors.response.use(
         processQueue(err);
 
         // ✅ Log out user when refresh fails
-        localStorage.removeItem("appstore");
+        store.dispatch(clearUser());
+        localStorage.removeItem("appStore");
         window.location.href = "/";
 
         return Promise.reject(err);
@@ -60,7 +63,8 @@ api.interceptors.response.use(
     }
     // ✅ Handle refresh token errors (401 from /auth/refresh-token)
     if (error.response?.status === 401 && isRefreshTokenEndpoint) {
-      localStorage.removeItem("appstore");
+      store.dispatch(clearUser());
+      localStorage.removeItem("appStore");
       window.location.href = "/";
       return Promise.reject(error);
     }

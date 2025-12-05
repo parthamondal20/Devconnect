@@ -3,7 +3,11 @@ import { Code2, Users, Rocket, Sparkles } from "lucide-react";
 import { useSelector } from "react-redux";
 const Home = () => {
     const { user } = useSelector((state) => state.auth);
-    if (user) {
+
+    // ✅ Additional safeguard: check if localStorage actually has user data
+    const hasValidSession = user && localStorage.getItem("appStore");
+
+    if (hasValidSession) {
         // if already logged in, redirect to feed
         return <Navigate to="/feed" replace />;
     }
