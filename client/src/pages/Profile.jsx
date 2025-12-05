@@ -15,6 +15,8 @@ import { getUserProfile, followUser, getFollowers } from "../services/user";
 import { createConversation } from "../services/message";
 import FollowerModal from "../components/FollowModel";
 import ImageCarousel from "../components/ImageCarousel";
+import SmallSpinner from "../components/SmallLoader";
+import { toast } from "react-hot-toast";
 const ALL_SKILLS = [
   "React", "Node.js", "Express", "MongoDB", "Tailwind", "TypeScript",
   "Docker", "Git", "Next.js", "Python", "C++", "Firebase", "GraphQL",
@@ -26,7 +28,7 @@ const Profile = () => {
   const { user_id } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
+  const { dark } = useSelector(state => state.theme);
   const [isEditing, setIsEditing] = useState(false);
   const [bio, setBio] = useState("");
   const [about, setAbout] = useState("");
@@ -40,7 +42,7 @@ const Profile = () => {
   const [followersCount, setFollowersCount] = useState(0);
   const [showFollowers, setShowFollowers] = useState(false);
   const [followersList, setFollowersList] = useState([]);
-
+  const [isProcessing, setIsProcessing] = useState(false);
   const toggleSkill = (skill) => {
     setSkills((prev) =>
       prev.includes(skill) ? prev.filter((s) => s !== skill) : [...prev, skill]
@@ -135,9 +137,9 @@ const Profile = () => {
       const res = await uploadAvatar(formData);
       dispatch(setUser(res));
       setAvatarPreview(res.avatar); // Update local preview immediately
-      showSuccess("Profile picture updated successfully");
+      toast.success("Profile picture uploaded");
     } catch (error) {
-      showError(error?.response?.data?.error?.message || "Upload failed");
+      toast.error(error?.response?.data?.error?.message || "Upload failed");
       console.log(error);
     } finally {
       setLoading(false);
@@ -146,17 +148,17 @@ const Profile = () => {
 
   const handleFollow = async () => {
     try {
-      setLoading(true);
+      setIsProcessing(true);
       setMessage("Updating follow status...");
       await followUser(profileUser._id);
-      showSuccess(isFollowing ? "Unfollowed user" : "Followed user");
+      toast.success(isFollowing ? "Unfollowed user" : "Followed user");
       setFollowersCount((prev) => (isFollowing ? prev - 1 : prev + 1));
       setIsFollowing((prev) => !prev);
     } catch (error) {
       showError("Failed to update follow status");
       console.log(error);
     } finally {
-      setLoading(false);
+      setIsProcessing(false);
     }
   };
 
@@ -243,12 +245,19 @@ const Profile = () => {
                       <>
                         <button
                           onClick={handleFollow}
-                          className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl font-semibold shadow-sm transition-all text-sm ${isFollowing
-                              ? "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-700"
-                              : "bg-blue-600 text-white hover:bg-blue-700 border border-transparent"
+                          disabled={isProcessing} // Disable button while loading
+                          className={`flex items-center justify-center flex-1 md:flex-none px-6 py-2.5 rounded-xl font-semibold shadow-sm transition-all text-sm ${isFollowing
+                            ? "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-700"
+                            : "bg-blue-600 text-white hover:bg-blue-700 border border-transparent"
                             }`}
                         >
-                          {isFollowing ? "Following" : "Follow"}
+                          {isProcessing ? (
+                            // Renders the spinner and hides text while processing
+                            <SmallSpinner dark={dark || !isFollowing} />
+                          ) : (
+                            // Renders the text when not processing
+                            isFollowing ? "Following" : "Follow"
+                          )}
                         </button>
                         <button
                           onClick={navigateChatRoom}
@@ -519,8 +528,8 @@ const Profile = () => {
                       key={skill}
                       onClick={() => toggleSkill(skill)}
                       className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${skills.includes(skill)
-                          ? "bg-blue-600 text-white"
-                          : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                        ? "bg-blue-600 text-white"
+                        : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                         }`}
                     >
                       {skill}

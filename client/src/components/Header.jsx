@@ -1,24 +1,39 @@
-import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
-import { Menu, X, Moon, Sun, Search, MessageCircle, LogIn } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import {
+    Menu,
+    X,
+    Moon,
+    Sun,
+    Search,
+    MessageCircle,
+    LogIn,
+    ArrowLeft,
+    Home,
+    Layers3,
+    ClipboardList
+} from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { changeTheme } from "../features/themeSlice";
 import { searchUser } from "../services/user";
 import useDebounce from "../hooks/useDebounce";
+
 const Header = () => {
     const [menuOpen, setMenuOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
+    const [isSearchingMobile, setIsSearchingMobile] = useState(false);
+
     const { user } = useSelector(state => state.auth);
     const { dark } = useSelector(state => state.theme);
     const [autoSuggestions, setAutoSuggestions] = useState([]);
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const location = useLocation();
-    const [loading, setLoading] = useState(false);
-    // Debounce the search query for efficient API calls
-    const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
-    // 🌙 Toggle dark mode effect
+    const [loading, setLoading] = useState(false);
+    const debouncedSearchQuery = useDebounce(searchQuery, 300);
+    const mobileSearchInputRef = useRef(null);
+
+    // 🌙 Dark Mode Effect
     useEffect(() => {
         if (dark) {
             document.documentElement.classList.add("dark");
@@ -27,223 +42,318 @@ const Header = () => {
         }
     }, [dark]);
 
-    // 🔥 Live Search Suggestions (Desktop)
+    // 🔥 Live Search Suggestions
     useEffect(() => {
+        if (!user) {
+            setAutoSuggestions([]);
+            return;
+        }
+
+        const term = debouncedSearchQuery.trim();
+        if (!term || term.length < 1) {
+            setLoading(false);
+            setAutoSuggestions([]);
+            return;
+        }
+
         setLoading(true);
         const fetchSuggestions = async () => {
-            if (debouncedSearchQuery.trim()) {
-                try {
-                    const suggestions = await searchUser(debouncedSearchQuery);
-                    console.log(suggestions);
-                    setAutoSuggestions(suggestions);
-                } catch (error) {
-                    console.error("Search failed:", error);
-                    setAutoSuggestions([]);
-                } finally {
-                    setLoading(false);
-                }
-            } else {
-                setAutoSuggestions([]); // Clear suggestions if query is empty
+            try {
+                const suggestions = await searchUser(term);
+                setAutoSuggestions(suggestions);
+            } catch (error) {
+                console.error("Search failed:", error);
+                setAutoSuggestions([]);
+            } finally {
+                setLoading(false);
             }
         };
 
-        if (user && debouncedSearchQuery.length >= 1) {
-            fetchSuggestions();
-        } else if (debouncedSearchQuery.length <= 1) {
-            setAutoSuggestions([]);
-        }
+        fetchSuggestions();
     }, [debouncedSearchQuery, user]);
 
-    // Fixed: Mobile search submission (navigates to search results page)
+    // UX: Focus mobile search input
+    useEffect(() => {
+        if (isSearchingMobile && mobileSearchInputRef.current) {
+            mobileSearchInputRef.current.focus();
+        }
+    }, [isSearchingMobile]);
+
+
+    // Search submission logic
     const handleSearch = (e) => {
         e.preventDefault();
-        if (searchQuery.trim()) {
-            navigate(`/search?q=${searchQuery.trim()}`);
+        const query = searchQuery.trim();
+        if (query) {
+            navigate(`/search?q=${query}`);
             setMenuOpen(false);
-            setSearchQuery(""); // Clear input after submission
+            setIsSearchingMobile(false);
+            setSearchQuery("");
+            setAutoSuggestions([]);
         }
     };
 
+    // Handler for selecting a suggestion item
+    const handleSuggestionClick = (path) => {
+        navigate(path);
+        setSearchQuery("");
+        setAutoSuggestions([]);
+        setIsSearchingMobile(false);
+    }
+
+    const toggleMobileSearch = () => {
+        setIsSearchingMobile(prev => !prev);
+        setSearchQuery("");
+        setAutoSuggestions([]);
+        setMenuOpen(false);
+    }
+
+    // Navigation Items with Icons
     const navItems = [
-        { label: "Home", path: "/feed" },
-        { label: "Projects", path: "/projects" },
-        { label: "Q&A", path: "/questions" },
-        { label: <MessageCircle size={18} />, path: "/messages" },
+        { label: "Feed", path: "/feed", Icon: Home },
+        { label: "Projects", path: "/projects", Icon: Layers3 },
+        { label: "Q&A", path: "/questions", Icon: ClipboardList },
     ];
 
+    // Tailwind classes for consistent styling
+    const iconButtonClasses = "p-2 rounded-full text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none";
+    const activeNavClasses = "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/10";
+    const inactiveNavClasses = "text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800";
+
+    // The main Header component structure
     return (
-        <header className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transition-colors duration-300">
+        <header className="sticky top-0 z-50 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 transition-colors duration-300">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center justify-between h-16 gap-4">
+                <div className="flex items-center justify-between h-16 gap-6">
 
-                    {/* 🔹 1. Logo (Fixed Link Logic) */}
-                    <Link to="/feed" className="flex-shrink-0 flex items-center gap-2 group">
-                        <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:scale-105 transition-transform">
-                            D
-                        </div>
-                        <span className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent tracking-tight hidden sm:block">
-                            DevConnect
-                        </span>
-                    </Link>
-
-                    {/* 🔍 2. Search Bar (Desktop) */}
-                    {user && <div className="hidden md:flex flex-1 max-w-md mx-auto">
-                        <div className="relative w-full group">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <Search className="h-4 w-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                    {/* 1. LEFT SECTION: Logo and Desktop Search Bar (Priority) */}
+                    <div className={`flex items-center gap-4 flex-1 ${isSearchingMobile ? 'hidden md:flex' : 'flex'}`}>
+                        {/* Logo */}
+                        <Link to="/feed" className="flex-shrink-0 flex items-center gap-2 group">
+                            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-extrabold text-lg shadow-md group-hover:scale-105 transition-transform">
+                                D
                             </div>
-                            <input
-                                type="text"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="block w-full pl-10 pr-3 py-2 border border-gray-200 dark:border-gray-700 rounded-full leading-5 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:outline-none focus:bg-white dark:focus:bg-gray-900 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all sm:text-sm"
-                                placeholder="Search developers, posts..."
-                            />
+                            <span className="text-xl font-bold text-gray-900 dark:text-white tracking-tight hidden sm:block">
+                                DevConnect
+                            </span>
+                        </Link>
 
-                            {/* 🔥 Suggestions Dropdown */}
-                            {(autoSuggestions.length > 0 || searchQuery.trim()) && (
-                                <div className="absolute top-full mt-2 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl overflow-hidden z-20">
+                        {/* Desktop Search Bar */}
+                        {user &&
+                            <div className="hidden md:block flex-1 max-w-sm">
+                                <div className="relative w-full group">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <Search className="h-4 w-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="block w-full pl-10 pr-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg leading-5 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:outline-none focus:bg-white dark:focus:bg-gray-900 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all sm:text-sm shadow-inner"
+                                        placeholder="Search developers..."
+                                    />
 
-                                    {/* Case 1: Results Found (Display Suggestions) */}
-                                    {autoSuggestions.length > 0 ? (
-                                        <>
-                                            <div className="py-1">
-                                                {autoSuggestions.slice(0, 5).map(suggestion => (
+                                    {/* Desktop Suggestions Dropdown */}
+                                    {(autoSuggestions.length > 0 || searchQuery.trim()) && (
+                                        <div className="absolute top-full mt-2 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl overflow-hidden z-20">
+                                            {autoSuggestions.length > 0 ? (
+                                                <>
+                                                    <div className="py-1">
+                                                        {autoSuggestions.slice(0, 5).map(suggestion => (
+                                                            <div
+                                                                key={suggestion._id}
+                                                                onClick={() => handleSuggestionClick(`/profile/${suggestion._id}`)}
+                                                                className="flex items-center p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer"
+                                                            >
+                                                                <img
+                                                                    src={suggestion.avatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=user"}
+                                                                    alt={suggestion.username}
+                                                                    className="w-9 h-9 rounded-full object-cover mr-3 border border-gray-100 dark:border-gray-700"
+                                                                />
+                                                                <div>
+                                                                    <span className="block font-semibold text-gray-900 dark:text-gray-100">{suggestion.username}</span>
+                                                                    <span className="block text-xs text-gray-500 dark:text-gray-400 truncate">Developer</span>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                    <hr className="border-gray-100 dark:border-gray-700" />
                                                     <Link
-                                                        key={suggestion._id}
-                                                        to={`/profile/${suggestion._id}`}
-                                                        onClick={() => {
-                                                            setSearchQuery("");
-                                                            setAutoSuggestions([]);
-                                                        }}
-                                                        className="flex items-center p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer"
+                                                        to={`/search?q=${searchQuery.trim()}`}
+                                                        onClick={() => handleSuggestionClick(`/search?q=${searchQuery.trim()}`)}
+                                                        className="block w-full text-center py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700/30 transition-colors"
                                                     >
-                                                        <img
-                                                            src={suggestion.avatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=user"}
-                                                            alt={suggestion.username}
-                                                            className="w-9 h-9 rounded-full object-cover mr-3 border border-gray-100 dark:border-gray-700"
-                                                        />
-                                                        <div>
-                                                            <span className="block font-semibold text-gray-900 dark:text-gray-100">{suggestion.username}</span>
-                                                            {/* Optional: Add secondary info like a title or short description */}
-                                                            <span className="block text-xs text-gray-500 dark:text-gray-400 truncate">Developer</span>
-                                                        </div>
+                                                        View all results
                                                     </Link>
-                                                ))}
-                                            </div>
-
-                                            {/* View All Results Link */}
-                                            <hr className="border-gray-100 dark:border-gray-700" />
-                                            <Link
-                                                to={`/search?q=${searchQuery.trim()}`}
-                                                onClick={() => {
-                                                    setSearchQuery("");
-                                                    setAutoSuggestions([]);
-                                                }}
-                                                className="block w-full text-center py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700/30 transition-colors"
-                                            >
-                                                View all results for "{searchQuery.substring(0, 20)}..."
-                                            </Link>
-                                        </>
-                                    ) : !loading && (
-
-                                        /* Case 2: No Results Found (Display Message) */
-                                        <div className="p-4 flex flex-col items-center justify-center text-center">
-                                            <Search className="w-6 h-6 text-gray-400 mb-2" />
-                                            <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
-                                                No users found
-                                            </p>
-                                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                                Try refining your search for **"{searchQuery}"**.
-                                            </p>
+                                                </>
+                                            ) : !loading && (
+                                                <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                                                    No users found for "{searchQuery}".
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>
-                            )}
-                        </div>
-                    </div>}
+                            </div>
+                        }
+                    </div>
 
-                    {/* 🔗 3. Navigation (Desktop) */}
-                    {
-                        user && <nav className="hidden lg:flex items-center gap-1">
-                            {navItems.map((item) => (
-                                <NavLink
-                                    key={item.path}
-                                    to={item.path}
-                                    className={({ isActive }) => `
-                                        px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200
-                                        ${isActive
-                                            ? "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/10"
-                                            : "text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800"
-                                        }
-                                    `}
-                                >
-                                    {item.label}
-                                </NavLink>
-                            ))}
-                        </nav>
+                    {/* 2. RIGHT SECTION: Navigation and Actions */}
+                    <div className="flex items-center gap-1 sm:gap-2 shrink-0">
 
-                    }
+                        {/* Desktop Nav Links */}
+                        {user &&
+                            <nav className="hidden lg:flex items-center gap-1 mr-2">
+                                {navItems.map((item) => (
+                                    <NavLink
+                                        key={item.path}
+                                        to={item.path}
+                                        className={({ isActive }) => `
+                                            px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200
+                                            ${isActive ? activeNavClasses : inactiveNavClasses}
+                                        `}
+                                    >
+                                        <div className="flex items-center gap-1">
+                                            <item.Icon size={18} className="mr-0.5" />
+                                            {item.label}
+                                        </div>
+                                    </NavLink>
+                                ))}
+                            </nav>
+                        }
 
+                        {/* Message Icon */}
+                        {user &&
+                            <NavLink
+                                to="/messages"
+                                className={({ isActive }) => `${iconButtonClasses} hidden lg:block ${isActive ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : ''}`}
+                                aria-label="Messages"
+                            >
+                                <MessageCircle size={20} />
+                            </NavLink>
+                        }
 
-                    {/* ⚙️ 4. Actions */}
-                    <div className="flex items-center gap-2 sm:gap-3">
+                        {/* Mobile Search Toggle */}
+                        {user && !isSearchingMobile && (
+                            <button
+                                onClick={toggleMobileSearch}
+                                className={`${iconButtonClasses} md:hidden`}
+                                aria-label="Open Search"
+                            >
+                                <Search size={20} />
+                            </button>
+                        )}
+
+                        {/* Theme Toggle */}
                         <button
                             onClick={() => dispatch(changeTheme())}
-                            className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none"
+                            className={iconButtonClasses}
                             aria-label="Toggle Dark Mode"
                         >
                             {dark ? <Sun size={20} className="text-yellow-400 fill-yellow-400" /> : <Moon size={20} />}
                         </button>
 
-                        {user &&
+                        {/* User Profile Link / Sign In */}
+                        {user && (
                             <Link
                                 to={`/profile/${user._id}`}
-                                className="hidden sm:flex items-center gap-2 p-1 pr-3 rounded-full border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all"
+                                className="flex items-center p-0.5 rounded-full hover:ring-2 hover:ring-blue-500 transition-shadow ml-1"
                             >
                                 <img
                                     src={user.avatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"}
                                     alt="Profile"
-                                    className="w-8 h-8 rounded-full object-cover"
+                                    className="w-9 h-9 rounded-full object-cover border-2 border-transparent"
                                 />
-                                <span className="text-sm font-medium text-gray-700 dark:text-gray-200 max-w-[100px] truncate">
-                                    {user.username}
-                                </span>
                             </Link>
-                        }
+                        )}
 
 
                         {/* Mobile Menu Toggle */}
-                        <button
-                            onClick={() => setMenuOpen(!menuOpen)}
-                            className="lg:hidden p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                        >
-                            {menuOpen ? <X size={24} /> : <Menu size={24} />}
-                        </button>
+                        {!isSearchingMobile && (
+                            <button
+                                onClick={() => setMenuOpen(!menuOpen)}
+                                className={`${iconButtonClasses} lg:hidden`}
+                                aria-label="Open Menu"
+                            >
+                                {menuOpen ? <X size={24} /> : <Menu size={24} />}
+                            </button>
+                        )}
                     </div>
                 </div>
+
+                {/* 📱 Mobile Search View Overlay (Retains previous good logic) */}
+                {user && isSearchingMobile && (
+                    <div className="md:hidden absolute inset-0 bg-white dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 h-16 flex items-center px-4 sm:px-6 z-50">
+                        <button
+                            onClick={toggleMobileSearch}
+                            className={`${iconButtonClasses} mr-2 shrink-0`}
+                            aria-label="Close Search"
+                        >
+                            <ArrowLeft size={20} />
+                        </button>
+                        <form onSubmit={handleSearch} className="relative flex-1">
+                            <input
+                                ref={mobileSearchInputRef}
+                                type="search"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="block w-full pl-4 pr-4 py-2 border border-gray-200 dark:border-gray-700 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-sm shadow-inner"
+                                placeholder="Search..."
+                            />
+                        </form>
+                    </div>
+                )}
             </div>
 
-            {/* 📱 Mobile Menu Dropdown */}
+            {/* 🔥 Mobile Suggestions Dropdown (Retains previous good logic) */}
+            {user && isSearchingMobile && (autoSuggestions.length > 0 || searchQuery.trim()) && (
+                <div className="md:hidden w-full bg-white dark:bg-gray-900 absolute top-16 border-t border-gray-200 dark:border-gray-800 shadow-xl z-40">
+                    <div className="p-2 max-h-[80vh] overflow-y-auto">
+                        {autoSuggestions.length > 0 ? (
+                            <>
+                                <div className="py-1">
+                                    {autoSuggestions.slice(0, 10).map(suggestion => (
+                                        <div
+                                            key={suggestion._id}
+                                            onClick={() => handleSuggestionClick(`/profile/${suggestion._id}`)}
+                                            className="flex items-center p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer rounded-lg"
+                                        >
+                                            <img
+                                                src={suggestion.avatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=user"}
+                                                alt={suggestion.username}
+                                                className="w-10 h-10 rounded-full object-cover mr-3 border border-gray-100 dark:border-gray-700"
+                                            />
+                                            <div>
+                                                <div className="text-sm font-semibold text-gray-900 dark:text-white">{suggestion.username}</div>
+                                                <div className="text-xs text-gray-500 dark:text-gray-400 truncate">Developer</div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <hr className="border-gray-100 dark:border-gray-700 mx-3" />
+                                <Link
+                                    to={`/search?q=${searchQuery.trim()}`}
+                                    onClick={() => handleSuggestionClick(`/search?q=${searchQuery.trim()}`)}
+                                    className="block w-full text-center py-3 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700/30 transition-colors rounded-lg"
+                                >
+                                    View all results
+                                </Link>
+                            </>
+                        ) : !loading && (
+                            <div className="p-6 text-center text-sm text-gray-500 dark:text-gray-400">
+                                No users found for "{searchQuery}".
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+
+            {/* 📱 Mobile Menu Dropdown (Unchanged) */}
             {menuOpen && (
                 <div className="lg:hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 animate-in slide-in-from-top-2 duration-200">
                     <div className="px-4 pt-4 pb-6 space-y-4">
 
-                        {/* Mobile Search - Now submits a search and navigates */}
-                        {user && <form onSubmit={handleSearch} className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <Search className="h-4 w-4 text-gray-400" />
-                            </div>
-                            <input
-                                type="text"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-sm"
-                                placeholder="Search..."
-                            />
-                        </form>}
-
-                        {/* Mobile Nav Links */}
                         <div className="space-y-1">
                             {navItems.map((item) => (
                                 <NavLink
@@ -251,20 +361,36 @@ const Header = () => {
                                     to={item.path}
                                     onClick={() => setMenuOpen(false)}
                                     className={({ isActive }) => `
-                                        block px-3 py-2.5 rounded-md text-base font-medium transition-colors
+                                        flex items-center gap-2 px-3 py-2.5 rounded-md text-base font-medium transition-colors
                                         ${isActive
                                             ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
                                             : "text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
                                         }
                                     `}
                                 >
+                                    <item.Icon size={20} />
                                     {item.label}
                                 </NavLink>
                             ))}
+                            {user && (
+                                <NavLink
+                                    to="/messages"
+                                    onClick={() => setMenuOpen(false)}
+                                    className={({ isActive }) => `
+                                        flex items-center gap-2 px-3 py-2.5 rounded-md text-base font-medium transition-colors
+                                        ${isActive
+                                            ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                                            : "text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
+                                        }
+                                    `}
+                                >
+                                    <MessageCircle size={20} />
+                                    Messages
+                                </NavLink>
+                            )}
                         </div>
 
-                        {/* Mobile User Profile Section */}
-                        {user ? (
+                        {user && (
                             <div className="pt-4 border-t border-gray-200 dark:border-gray-800">
                                 <Link
                                     to={`/profile/${user._id}`}
@@ -282,16 +408,6 @@ const Header = () => {
                                     </div>
                                 </Link>
                             </div>
-                        ) : (
-                            <div className="pt-4 border-t border-gray-200 dark:border-gray-800">
-                                <Link
-                                    to="/signin"
-                                    onClick={() => setMenuOpen(false)}
-                                    className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors"
-                                >
-                                    <LogIn size={18} /> Sign In
-                                </Link>
-                            </div>
                         )}
                     </div>
                 </div>
@@ -301,4 +417,3 @@ const Header = () => {
 };
 
 export default Header;
-
