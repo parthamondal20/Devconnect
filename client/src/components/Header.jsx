@@ -111,7 +111,6 @@ const Header = () => {
     // Navigation Items with Icons
     const navItems = [
         { label: "Feed", path: "/feed", Icon: Home },
-        { label: "Projects", path: "/projects", Icon: Layers3 },
         { label: "Q&A", path: "/questions", Icon: ClipboardList },
     ];
 
@@ -126,79 +125,79 @@ const Header = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16 gap-6">
 
-                    {/* 1. LEFT SECTION: Logo and Desktop Search Bar (Priority) */}
-                    <div className={`flex items-center gap-4 flex-1 ${isSearchingMobile ? 'hidden md:flex' : 'flex'}`}>
+                    {/* 1. LEFT SECTION: Logo */}
+                    <div className={`flex items-center gap-4 ${isSearchingMobile ? 'hidden md:flex' : 'flex'}`}>
                         {/* Logo */}
-                        <Link to="/feed" className="flex-shrink-0 flex items-center gap-2 group">
+                        <div className="flex-shrink-0 flex items-center gap-2 group">
                             <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-extrabold text-lg shadow-md group-hover:scale-105 transition-transform">
                                 D
                             </div>
                             <span className="text-xl font-bold text-gray-900 dark:text-white tracking-tight hidden sm:block">
                                 DevConnect
                             </span>
-                        </Link>
-
-                        {/* Desktop Search Bar */}
-                        {user &&
-                            <div className="hidden md:block flex-1 max-w-sm">
-                                <div className="relative w-full group">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <Search className="h-4 w-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
-                                    </div>
-                                    <input
-                                        type="text"
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="block w-full pl-10 pr-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg leading-5 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:outline-none focus:bg-white dark:focus:bg-gray-900 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all sm:text-sm shadow-inner"
-                                        placeholder="Search developers..."
-                                    />
-
-                                    {/* Desktop Suggestions Dropdown */}
-                                    {(autoSuggestions.length > 0 || searchQuery.trim()) && (
-                                        <div className="absolute top-full mt-2 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl overflow-hidden z-20">
-                                            {autoSuggestions.length > 0 ? (
-                                                <>
-                                                    <div className="py-1">
-                                                        {autoSuggestions.slice(0, 5).map(suggestion => (
-                                                            <div
-                                                                key={suggestion._id}
-                                                                onClick={() => handleSuggestionClick(`/profile/${suggestion._id}`)}
-                                                                className="flex items-center p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer"
-                                                            >
-                                                                <img
-                                                                    src={suggestion.avatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=user"}
-                                                                    alt={suggestion.username}
-                                                                    className="w-9 h-9 rounded-full object-cover mr-3 border border-gray-100 dark:border-gray-700"
-                                                                />
-                                                                <div>
-                                                                    <span className="block font-semibold text-gray-900 dark:text-gray-100">{suggestion.username}</span>
-                                                                    <span className="block text-xs text-gray-500 dark:text-gray-400 truncate">Developer</span>
-                                                                </div>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                    <hr className="border-gray-100 dark:border-gray-700" />
-                                                    <Link
-                                                        to={`/search?q=${searchQuery.trim()}`}
-                                                        onClick={() => handleSuggestionClick(`/search?q=${searchQuery.trim()}`)}
-                                                        className="block w-full text-center py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700/30 transition-colors"
-                                                    >
-                                                        View all results
-                                                    </Link>
-                                                </>
-                                            ) : !loading && (
-                                                <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
-                                                    No users found for "{searchQuery}".
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        }
+                        </div>
                     </div>
 
-                    {/* 2. RIGHT SECTION: Navigation and Actions */}
+                    {/* 2. CENTER SECTION: Search Bar */}
+                    {user &&
+                        <div className="hidden md:block flex-1 max-w-xl mx-auto">
+                            <div className="relative w-full group">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <Search className="h-4 w-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                                </div>
+                                <input
+                                    type="text"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="block w-full pl-10 pr-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg leading-5 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:outline-none focus:bg-white dark:focus:bg-gray-900 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all sm:text-sm shadow-inner"
+                                    placeholder="Search developers..."
+                                />
+
+                                {/* Desktop Suggestions Dropdown */}
+                                {(autoSuggestions.length > 0 || searchQuery.trim()) && (
+                                    <div className="absolute top-full mt-2 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl overflow-hidden z-20">
+                                        {autoSuggestions.length > 0 ? (
+                                            <>
+                                                <div className="py-1">
+                                                    {autoSuggestions.slice(0, 5).map(suggestion => (
+                                                        <div
+                                                            key={suggestion._id}
+                                                            onClick={() => handleSuggestionClick(`/profile/${suggestion._id}`)}
+                                                            className="flex items-center p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer"
+                                                        >
+                                                            <img
+                                                                src={suggestion.avatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=user"}
+                                                                alt={suggestion.username}
+                                                                className="w-9 h-9 rounded-full object-cover mr-3 border border-gray-100 dark:border-gray-700"
+                                                            />
+                                                            <div>
+                                                                <span className="block font-semibold text-gray-900 dark:text-gray-100">{suggestion.username}</span>
+                                                                <span className="block text-xs text-gray-500 dark:text-gray-400 truncate">Developer</span>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                                <hr className="border-gray-100 dark:border-gray-700" />
+                                                <Link
+                                                    to={`/search?q=${searchQuery.trim()}`}
+                                                    onClick={() => handleSuggestionClick(`/search?q=${searchQuery.trim()}`)}
+                                                    className="block w-full text-center py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700/30 transition-colors"
+                                                >
+                                                    View all results
+                                                </Link>
+                                            </>
+                                        ) : !loading && (
+                                            <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                                                No users found for "{searchQuery}".
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    }
+
+                    {/* 3. RIGHT SECTION: Navigation and Actions */}
                     <div className="flex items-center gap-1 sm:gap-2 shrink-0">
 
                         {/* Desktop Nav Links */}
@@ -222,14 +221,14 @@ const Header = () => {
                             </nav>
                         }
 
-                        {/* Message Icon */}
+                        {/* Message Link with Label */}
                         {user &&
                             <NavLink
                                 to="/messages"
-                                className={({ isActive }) => `${iconButtonClasses} hidden lg:block ${isActive ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : ''}`}
-                                aria-label="Messages"
+                                className={({ isActive }) => `hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${isActive ? activeNavClasses : inactiveNavClasses}`}
                             >
-                                <MessageCircle size={20} />
+                                <MessageCircle size={18} />
+                                <span>Messages</span>
                             </NavLink>
                         }
 

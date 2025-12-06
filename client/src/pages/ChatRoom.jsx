@@ -13,12 +13,15 @@ import {
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import EmojiPickerComponent from "../components/EmojiPickerComponent";
 
 export default function ChatRoom({ messages, onSendMessage, user: chatPartner }) {
   const [text, setText] = useState("");
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const emojiRef = useRef(null);
   const chatEndRef = useRef(null);
   const navigate = useNavigate();
-
+  console.log(chatPartner);
   // Logged in user from Redux
   const { user } = useSelector((state) => state.auth);
 
@@ -26,6 +29,17 @@ export default function ChatRoom({ messages, onSendMessage, user: chatPartner })
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Close emoji picker on click outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (emojiRef.current && !emojiRef.current.contains(e.target)) {
+        setShowEmojiPicker(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleSend = () => {
     if (!text.trim()) return;
@@ -182,9 +196,19 @@ export default function ChatRoom({ messages, onSendMessage, user: chatPartner })
             onKeyDown={handleKeyDown}
             style={{ minHeight: '24px' }} // prevent collapse
           />
-          <button className="text-gray-500 dark:text-gray-400 hover:text-blue-500 transition ml-2">
-            <Smile className="w-6 h-6" />
-          </button>
+          <div className="relative" ref={emojiRef}>
+            <button
+              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              className={`transition ml-2 ${showEmojiPicker ? "text-blue-500" : "text-gray-500 dark:text-gray-400 hover:text-blue-500"}`}
+            >
+              <Smile className="w-6 h-6" />
+            </button>
+            {showEmojiPicker && (
+              <div className="absolute bottom-12 right-0 z-50 shadow-2xl rounded-2xl">
+                <EmojiPickerComponent onEmojiClick={(emojiData) => setText((prev) => prev + emojiData.emoji)} />
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Send Button */}

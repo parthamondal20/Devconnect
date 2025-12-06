@@ -103,6 +103,7 @@ const Profile = () => {
         const res = await createConversation([user._id, profileUser._id]);
         profileUser.conversation_id = res._id;
       }
+      console.log(profileUser);
       navigate(`/chat/${profileUser.conversation_id}`, {
         state: { currentUser: profileUser }
       });

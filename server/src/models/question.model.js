@@ -19,6 +19,26 @@ const questionSchema = new mongoose.Schema({
         ref: "User",
         required: true
     },
+    answers: [{
+        type: Schema.Types.ObjectId,
+        ref: "Answer"
+    }],
+    Likes: [{
+        type: Schema.Types.ObjectId,
+        ref: "User"
+    }],
+    Dislikes: [{
+        type: Schema.Types.ObjectId,
+        ref: "User"
+    }],
+    LikesCount: {
+        type: Number,
+        default: 0
+    },
+    DislikesCount: {
+        type: Number,
+        default: 0
+    },
     createdAt: {
         type: Date,
         default: Date.now
@@ -29,3 +49,5 @@ const questionSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 const Question = mongoose.model("Question", questionSchema);
+
+export default Question;

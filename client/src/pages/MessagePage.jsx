@@ -176,7 +176,7 @@ const Messages = () => {
                                         key={convo._id}
                                         to={`/chat/${convo._id}`}
                                         // The state prop is for sending data to the chat route
-                                        state={{ partnerData: partner }}
+                                        state={{ currentUser: partner }}
                                         className="group flex items-center gap-4 p-4 bg-white dark:bg-gray-900 hover:bg-blue-50 dark:hover:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm transition-all cursor-pointer"
                                     >
                                         {/* Avatar */}

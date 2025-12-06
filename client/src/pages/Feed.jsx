@@ -24,6 +24,7 @@ import CommentModal from "../components/CommentModal";
 import PostLoader from "../components/PostLoader";
 import { SkeletonTheme } from 'react-loading-skeleton';
 import FeedLoader from "../components/FeedLoader";
+import ConfirmModal from "../components/ConfirmModal";
 // Sidebar import removed per request
 // Helper for relative time (Simple version)
 const timeAgo = (date) => {
@@ -58,6 +59,8 @@ const Feed = () => {
   const [message, setMessage] = useState("loading..");
   const [activePost, setActivePost] = useState(null);
   const [postloading, setPostLoading] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [postToDelete, setPostToDelete] = useState(null);
   // Placeholder for missing handleFollow function
   const handleFollow = async (userId) => {
     toast.success("Follow feature coming soon!");
@@ -120,10 +123,16 @@ const Feed = () => {
     fetchPosts();
   }, []);
 
-  const handleDelete = async (postId) => {
+  const handleDeleteClick = (postId) => {
+    setPostToDelete(postId);
+    setShowDeleteModal(true);
+    setMenuOpen(null);
+  };
+
+  const confirmDelete = async () => {
     await toast.promise(
-      deletePost(postId).then(() => {
-        setPosts((prev) => prev.filter((p) => p._id !== postId));
+      deletePost(postToDelete).then(() => {
+        setPosts((prev) => prev.filter((p) => p._id !== postToDelete));
       }),
       {
         loading: "Deleting post...",
@@ -281,32 +290,12 @@ const Feed = () => {
                       {menuOpen === postItem._id && (
                         <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-20 overflow-hidden animate-in fade-in zoom-in duration-200">
                           {postItem.user?._id === user?._id ? (
-                            deleteConfirmId === postItem._id ? (
-                              <div className="p-2 bg-red-50 dark:bg-red-900/20">
-                                <p className="text-xs text-red-600 dark:text-red-400 font-medium mb-2 px-1">Confirm delete?</p>
-                                <div className="flex gap-2">
-                                  <button
-                                    onClick={() => { setDeleteConfirmId(null); setMenuOpen(null); }}
-                                    className="flex-1 px-2 py-1 text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm"
-                                  >
-                                    Cancel
-                                  </button>
-                                  <button
-                                    onClick={() => { handleDelete(postItem._id); setDeleteConfirmId(null); setMenuOpen(null); }}
-                                    className="flex-1 px-2 py-1 text-xs bg-red-500 text-white rounded-md shadow-sm hover:bg-red-600"
-                                  >
-                                    Delete
-                                  </button>
-                                </div>
-                              </div>
-                            ) : (
-                              <button
-                                onClick={() => setDeleteConfirmId(postItem._id)}
-                                className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                              >
-                                <span>Delete Post</span>
-                              </button>
-                            )
+                            <button
+                              onClick={() => handleDeleteClick(postItem._id)}
+                              className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                            >
+                              <span>Delete Post</span>
+                            </button>
                           ) : (
                             <button className="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 dark:hover:bg-gray-700">
                               Report Post
@@ -404,6 +393,13 @@ const Feed = () => {
       </div>
 
       {/* Modals */}
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={confirmDelete}
+        title="Delete Post?"
+        message="Are you sure you want to delete this post? This action cannot be undone."
+      />
       {activePost && (
         <CommentModal
           post={activePost}
