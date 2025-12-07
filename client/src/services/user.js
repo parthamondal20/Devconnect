@@ -9,6 +9,15 @@ const getUser = async () => {
   }
 };
 
+const editProfile = async (payload) => {
+  try {
+    const res = await api.put("/user/profile/edit", {
+      payload
+    })
+  } catch (error) {
+    throw error;
+  }
+}
 const getUserProfile = async (userId) => {
   try {
     // Public user route (no auth required)
@@ -45,14 +54,20 @@ const uploadAvatar = async (formdata) => {
 const getFollowers = async () => {
   try {
     const res = await api.get("/user/followers");
-    console.log(res);
     return res.data.data;
   } catch (error) {
     throw error;
   }
 };
 
-
+const getFollowing = async () => {
+  try {
+    const res = await api.get("/user/following");
+    return res.data.data;
+  } catch (error) {
+    throw error;
+  }
+}
 const searchUser = async (query) => {
   try {
     const res = await api.get(`/user/search?q=${query}`);
@@ -62,4 +77,4 @@ const searchUser = async (query) => {
     throw error;
   }
 }
-export { getUser, uploadAvatar, getUserProfile, followUser, getFollowers, searchUser };
+export { getUser, uploadAvatar, getUserProfile, followUser, getFollowers, searchUser, getFollowing, editProfile };

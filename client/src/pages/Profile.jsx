@@ -10,13 +10,14 @@ import { logout } from "../services/auth";
 import { showError, showSuccess } from "../utils/toast";
 import { setUser, clearUser } from "../features/authSlice";
 import { useNavigate, useParams } from "react-router-dom";
-import { uploadAvatar } from "../services/user";
-import { getUserProfile, followUser, getFollowers } from "../services/user";
+import { editProfile, uploadAvatar } from "../services/user";
+import { getUserProfile, followUser, getFollowers, getFollowing } from "../services/user";
 import { createConversation } from "../services/message";
 import FollowerModal from "../components/FollowModel";
 import ImageCarousel from "../components/ImageCarousel";
 import SmallSpinner from "../components/SmallLoader";
 import { toast } from "react-hot-toast";
+import ConfirmModal from "../components/ConfirmModal";
 const ALL_SKILLS = [
   "React", "Node.js", "Express", "MongoDB", "Tailwind", "TypeScript",
   "Docker", "Git", "Next.js", "Python", "C++", "Firebase", "GraphQL",
@@ -31,6 +32,7 @@ const Profile = () => {
   const { dark } = useSelector(state => state.theme);
   const [isEditing, setIsEditing] = useState(false);
   const [bio, setBio] = useState("");
+  const [username, setUsername] = useState("");
   const [about, setAbout] = useState("");
   const [skills, setSkills] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -43,6 +45,7 @@ const Profile = () => {
   const [showFollowers, setShowFollowers] = useState(false);
   const [followersList, setFollowersList] = useState([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const toggleSkill = (skill) => {
     setSkills((prev) =>
       prev.includes(skill) ? prev.filter((s) => s !== skill) : [...prev, skill]
@@ -80,22 +83,57 @@ const Profile = () => {
     }
   }, [user_id]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     console.log({ bio, about, skills });
-    // API Call here
-    setIsEditing(false);
+    const loadingToast = toast.loading("Saving profile Info..");
+    const payload = {
+      username,
+      bio,
+      about,
+      skills
+    }
+    try {
+      await editProfile(payload);
+      toast.dismiss(loadingToast);
+      toast.success("Profile updated successfully");
+    } catch (error) {
+      console.log(error);
+    } finally {
+      toast.dismiss(loadingToast);
+      setIsEditing(false);
+    }
   };
 
   const showFollowersList = async () => {
+    const loadingToast = toast.loading("loading...");
     try {
       const followers = await getFollowers();
+      toast.dismiss(loadingToast);
       setShowFollowers(true);
       setFollowersList(followers);
     } catch (error) {
       console.log(error);
+      toast.error("Network error!");
+    } finally {
+      toast.dismiss(loadingToast);
     }
   };
 
+  const showFollowingList = async () => {
+    const loadingToast = toast.loading("loading...");
+    try {
+
+      const following = await getFollowing();
+      toast.dismiss(loadingToast);
+      setShowFollowers(true);
+      setFollowersList(following);
+    } catch (error) {
+      console.log(error);
+      toast.error("Network error!");
+    } finally {
+      toast.dismiss(loadingToast);
+    }
+  }
   const navigateChatRoom = async () => {
     setLoading(true);
     try {
@@ -236,7 +274,7 @@ const Profile = () => {
                           <span className="flex items-center gap-2"><Edit2 size={16} /> Edit</span>
                         </button>
                         <button
-                          onClick={handleLogout}
+                          onClick={() => setShowLogoutConfirm(true)}
                           className="flex-1 md:flex-none items-center justify-center gap-2 px-5 py-2.5 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-xl font-semibold hover:bg-red-100 dark:hover:bg-red-900/30 transition text-sm"
                         >
                           <span className="flex items-center gap-2"><LogOut size={16} /> Logout</span>
@@ -315,7 +353,7 @@ const Profile = () => {
                 </div>
               </div>
 
-              <div className="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-gray-200 dark:border-gray-800">
+              <div onClick={showFollowingList} className="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-gray-200 cursor-pointer dark:border-gray-800">
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="text-2xl font-bold text-gray-900 dark:text-white">{profileUser.following?.length || 0}</p>
@@ -500,6 +538,16 @@ const Profile = () => {
             {/* Scrollable Content */}
             <div className="p-5 overflow-y-auto space-y-5">
               <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Username</label>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full p-3 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-900 dark:text-white"
+                  placeholder="Username"
+                />
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Bio</label>
                 <input
                   type="text"
@@ -558,6 +606,15 @@ const Profile = () => {
           </div>
         </div>
       )}
+
+      {/* 4. Logout Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={handleLogout}
+        title="Logout Confirmation"
+        message="Are you sure you want to logout? You will need to sign in again to access your account."
+      />
     </div>
   );
 };

@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Link } from "react-router-dom";
 import { Search, MoreVertical, CheckCheck, Plus } from "lucide-react";
 import { getConversations } from "../services/message";
 import { useSelector } from "react-redux";
-
+import SmallLoader from "../components/SmallLoader.jsx";
 // Helper function remains the same
 const timeAgo = (date) => {
     const seconds = Math.floor((new Date() - new Date(date)) / 1000);
@@ -92,9 +92,9 @@ const Messages = () => {
     const listToRender = filteredConversations;
 
     // Add a check to handle the `user` object being potentially undefined on initial load
-    if (!user) {
-        return <div className="text-center py-20">Loading user data...</div>;
-    }
+    // if (!user) {
+    //     return <SmallLoader dark={true}/>
+    // }
 
 
     return (
@@ -123,38 +123,6 @@ const Messages = () => {
                     />
                 </div>
 
-                {/* Active Users Section (Remaining unchanged) */}
-                <div className="mb-8">
-                    <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-4 uppercase tracking-wider">
-                        Active Now
-                    </h2>
-                    <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
-                        {/* Add Story Button (Optional UX enhancement) */}
-                        <div className="flex flex-col items-center gap-2 min-w-[64px] cursor-pointer group">
-                            <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-700 group-hover:border-blue-500 transition-colors">
-                                <Plus size={24} className="text-gray-400 group-hover:text-blue-500" />
-                            </div>
-                            <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Your Story</span>
-                        </div>
-
-                        {/* Active User List */}
-                        {MOCK_ACTIVE_USERS.map((activeUser) => ( // Renamed to activeUser to avoid confusion
-                            <div key={activeUser.id} className="flex flex-col items-center gap-2 min-w-[64px] cursor-pointer group">
-                                <div className="relative">
-                                    <img
-                                        src={activeUser.avatar}
-                                        alt={activeUser.username}
-                                        className="w-16 h-16 rounded-full object-cover border-2 border-transparent group-hover:border-blue-500 transition-all p-0.5 bg-white dark:bg-gray-900"
-                                    />
-                                    <div className="absolute bottom-0.5 right-0.5 w-4 h-4 bg-green-500 border-[3px] border-white dark:border-black rounded-full"></div>
-                                </div>
-                                <span className="text-xs font-medium text-gray-600 dark:text-gray-300 group-hover:text-blue-500 transition-colors">
-                                    {activeUser.username}
-                                </span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
 
                 {/* Conversations List */}
                 <div>

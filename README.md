@@ -8,13 +8,11 @@ DevConnect is a full-stack developer social platform for sharing posts, chatting
 - **Profile**: View and edit user profiles, including followers and following lists.
 - **Posts**: Create, view, like, and comment on posts. Image uploads supported via ImageKit.
 - **Q&A Platform**: Stack Overflow-style question and answer system with voting, answers, and community engagement.
-- **Code Snippet Sharing**: Syntax-highlighted code blocks with multi-language support (JavaScript, Python, Java, C++, C) using Prism.js.
 - **Chat**: Real-time messaging between users using Socket.io with emoji picker and typing indicators.
 - **Jobs**: Browse and apply for developer jobs.
 - **Followers**: Follow/unfollow users and view followers/following.
 - **AI Chatbot**: Developer chatbot powered by OpenAI.
 - **Emoji Picker**: Integrated emoji support for posts and messages with custom reusable component.
-- **Confirmation Modals**: Reusable confirmation dialogs for destructive actions (delete posts, questions).
 - **Image Carousel**: Multi-image post support with interactive carousel navigation.
 - **File Uploads**: Image uploads via ImageKit.
 - **Dark/Light Theme**: Persistent theme toggle with Redux state management.
@@ -23,7 +21,7 @@ DevConnect is a full-stack developer social platform for sharing posts, chatting
 
 ## Tech Stack
 
-- **Frontend**: React, Vite, Tailwind CSS, Redux Toolkit, Prism.js, Lucide Icons
+- **Frontend**: React, Vite, Tailwind CSS, Redux Toolkit,Lucide Icons
 - **Backend**: Node.js, Express, Mongoose
 - **Database**: MongoDB
 - **Real-time**: Socket.io
@@ -137,28 +135,6 @@ VITE_BACKEND_URL=http://localhost:5000
 - `/api/job` - Job listings
 
 Swagger docs available at `/api-docs` when backend is running.
-
-## Key Technical Implementations
-
-### Q&A System
-- **Vote System**: Upvote/downvote with optimistic UI updates and debounced API calls
-- **Answer Management**: Nested answer model with user references
-- **Real-time Updates**: Vote counts update instantly with Redux state management
-
-### Code Snippet Feature
-- **Syntax Highlighting**: Prism.js integration with 5+ language support
-- **Code Editor**: Custom CodeEditor component with language selection
-- **Rendering**: CodeSnippet component for displaying formatted code blocks
-
-### Reusable Components
-- **EmojiPickerComponent**: Centralized emoji picker for chat and posts
-- **ConfirmModal**: Generic confirmation dialog with customizable messages
-- **ImageCarousel**: Multi-image navigation with fullscreen view
-
-### State Management
-- Redux Toolkit slices for auth, theme, posts, and questions
-- Optimistic UI updates for better UX
-- Persistent theme preference
 
 ## Available npm scripts
 

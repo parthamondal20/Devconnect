@@ -47,6 +47,31 @@ const uploadProfilePicture = asyncHandler(async (req, res) => {
     );
 });
 
+const editProfile = asyncHandler(async (req, res) => {
+  const userId = req.user?._id;
+  const { payload } = req.body;
+  if (!userId) {
+    throw new ApiError(400, "User access denaied");
+  }
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+  user.username = payload.username.trim() || user.username;
+  user.bio = payload.bio.trim() || user.bio;
+  user.about = payload.about.trim() || user.about;
+  user.skills = payload.skills;
+  await user.save();
+  const updatedUser = await User.findById(user._id).select(
+    "-password -refreshToken"
+  );
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, "Profile updated successfully", updatedUser)
+    );
+})
+
 const followUser = asyncHandler(async (req, res) => {
   const userId = req.user._id;
   const { user_id } = req.body;
@@ -131,6 +156,17 @@ const getFollowers = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, "Followers fetched successfully", user.followers));
 });
 
+const getFollowing = asyncHandler(async (req, res) => {
+  const user_id = req?.user._id;
+  const user = await User.findById(user_id)
+    .populate("following", "username avatar email")
+    .select("following");
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+  return res.status(200).json(new ApiResponse(200, "Following fetched successfully", user.following));
+})
 
 const searchUser = asyncHandler(async (req, res) => {
   const query = req.query.q;
@@ -164,4 +200,4 @@ const searchUser = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, "search results", users));
 })
-export { getUser, uploadProfilePicture, getUserProfile, followUser, getFollowers, searchUser };
+export { getUser, uploadProfilePicture, getUserProfile, followUser, getFollowers, getFollowing, searchUser, editProfile };

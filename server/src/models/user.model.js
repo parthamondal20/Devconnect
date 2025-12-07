@@ -52,6 +52,10 @@ const userSchema = new Schema(
         trim: true,
       },
     ],
+    portfollioLink: {
+      type: String,
+      default: null
+    },
     links: {
       type: String,
     },
