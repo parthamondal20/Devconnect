@@ -5,6 +5,7 @@ import { RouterProvider, Route, createBrowserRouter, createRoutesFromElements } 
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import './index.css';
+import { NotificationProvider } from './context/NotificationContext';
 
 import Layout from './Layout.jsx';
 import Home from "./pages/Home";
@@ -23,6 +24,7 @@ const Community = lazy(() => import("./pages/Community.jsx"));
 const CommunityChatPage = lazy(() => import("./pages/CommunityChatPage.jsx"));
 const ChatPage = lazy(() => import("./pages/ChatPage.jsx"));
 const MessagePage = lazy(() => import("./pages/MessagePage.jsx"));
+const NotificationPage = lazy(() => import("./pages/Notifications.jsx"));
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path='' element={<Layout />}>
@@ -40,6 +42,7 @@ const router = createBrowserRouter(
       <Route path='/verify-otp' element={<OTPpage />} />
       <Route path='/questions' element={<QuestionsPage />} />
       <Route path='/messages' element={<MessagePage />} />
+      <Route path='/notifications' element={<NotificationPage />} />
     </Route>
   )
 )
@@ -47,9 +50,11 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
 
     <Provider store={store}>
-      <Suspense fallback={<Loader message='render going to take some time to start server...' />}>
-        <RouterProvider router={router} />
-      </Suspense>
+      <NotificationProvider>
+        <Suspense fallback={<Loader message='render going to take some time to start server...' />}>
+          <RouterProvider router={router} />
+        </Suspense>
+      </NotificationProvider>
     </Provider>
   </StrictMode>,
 )

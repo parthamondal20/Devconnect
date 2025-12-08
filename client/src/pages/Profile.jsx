@@ -64,6 +64,7 @@ const Profile = () => {
       setAvatarPreview(res?.avatar || "");
       setIsFollowing(res?.isFollowing || false);
       setFollowersCount(res?.followers?.length || 0);
+      setUsername(res?.username || "");
     } catch (error) {
       console.log(error);
       showError("Failed to fetch user profile");
@@ -253,10 +254,10 @@ const Profile = () => {
                 <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
                   <div>
                     <h1 className="text-2xl md:text-4xl font-bold text-gray-900 dark:text-white">
-                      {profileUser?.username || "Dev User"}
+                      {username || "Dev User"}
                     </h1>
                     <p className="text-gray-500 dark:text-gray-400 font-medium">
-                      @{profileUser?.username?.replace(/\s/g, '').toLowerCase()}
+                      @{username?.replace(/\s/g, '').toLowerCase()}
                     </p>
                     <p className="text-gray-600 dark:text-gray-300 mt-3 md:mt-2 max-w-2xl mx-auto md:mx-0 leading-relaxed">
                       {bio || "No bio added yet."}

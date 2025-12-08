@@ -6,6 +6,7 @@ import {
     Sun,
     Search,
     MessageCircle,
+    Bell,
     LogIn,
     ArrowLeft,
     Home,
@@ -17,7 +18,8 @@ import { useSelector, useDispatch } from "react-redux";
 import { changeTheme } from "../features/themeSlice";
 import { searchUser } from "../services/user";
 import useDebounce from "../hooks/useDebounce";
-
+import { connectSocket } from "../api/socket";
+import { useNotifications } from "../context/NotificationContext";
 const Header = () => {
     const [menuOpen, setMenuOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
@@ -25,6 +27,7 @@ const Header = () => {
 
     const { user } = useSelector(state => state.auth);
     const { dark } = useSelector(state => state.theme);
+    const { unreadCount } = useNotifications();
     const [autoSuggestions, setAutoSuggestions] = useState([]);
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -42,6 +45,11 @@ const Header = () => {
         }
     }, [dark]);
 
+    useEffect(() => {
+        if (user) {
+            connectSocket(user._id);
+        }
+    }, [user]);
     // 🔥 Live Search Suggestions
     useEffect(() => {
         if (!user) {
@@ -221,6 +229,24 @@ const Header = () => {
                             </nav>
                         }
 
+                        {/* Notifications Link with Label */}
+                        {user &&
+                            <NavLink
+                                to="/notifications"
+                                className={({ isActive }) => `hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 relative ${isActive ? activeNavClasses : inactiveNavClasses}`}
+                            >
+                                <div className="relative">
+                                    <Bell size={18} />
+                                    {unreadCount > 0 && (
+                                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-4 min-w-4 flex items-center justify-center px-1">
+                                            {unreadCount > 9 ? '9+' : unreadCount}
+                                        </span>
+                                    )}
+                                </div>
+                                <span>Notifications</span>
+                            </NavLink>
+                        }
+
                         {/* Message Link with Label */}
                         {user &&
                             <NavLink
@@ -372,20 +398,36 @@ const Header = () => {
                                 </NavLink>
                             ))}
                             {user && (
-                                <NavLink
-                                    to="/messages"
-                                    onClick={() => setMenuOpen(false)}
-                                    className={({ isActive }) => `
-                                        flex items-center gap-2 px-3 py-2.5 rounded-md text-base font-medium transition-colors
-                                        ${isActive
-                                            ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
-                                            : "text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
-                                        }
-                                    `}
-                                >
-                                    <MessageCircle size={20} />
-                                    Messages
-                                </NavLink>
+                                <>
+                                    <NavLink
+                                        to="/notifications"
+                                        onClick={() => setMenuOpen(false)}
+                                        className={({ isActive }) => `
+                                            flex items-center gap-2 px-3 py-2.5 rounded-md text-base font-medium transition-colors
+                                            ${isActive
+                                                ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                                                : "text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
+                                            }
+                                        `}
+                                    >
+                                        <Bell size={20} />
+                                        Notifications
+                                    </NavLink>
+                                    <NavLink
+                                        to="/messages"
+                                        onClick={() => setMenuOpen(false)}
+                                        className={({ isActive }) => `
+                                            flex items-center gap-2 px-3 py-2.5 rounded-md text-base font-medium transition-colors
+                                            ${isActive
+                                                ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                                                : "text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
+                                            }
+                                        `}
+                                    >
+                                        <MessageCircle size={20} />
+                                        Messages
+                                    </NavLink>
+                                </>
                             )}
                         </div>
 

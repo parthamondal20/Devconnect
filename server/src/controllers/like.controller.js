@@ -4,6 +4,7 @@ import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import Post from "../models/post.model.js";
 import redis from "../config/redis.js";
+import sendNotification from "../utils/sendNotification.js";
 const likePost = asyncHandler(async (req, res) => {
   const { post_id } = req.params;
   const post = await Post.findById(post_id);
@@ -26,8 +27,18 @@ const likePost = asyncHandler(async (req, res) => {
     await Like.create({ user: userId, post: post_id });
     await Post.findByIdAndUpdate(post_id, { $inc: { likesCount: 1 } });
     await redis.sadd(redisKey, userIdStr);
-  }
 
+    // Send notification if not liking own post
+    if (post.user.toString() !== userId.toString()) {
+      await sendNotification(
+        userId,
+        post.user,
+        "like",
+        "liked your post",
+        { postId: post._id }
+      );
+    }
+  }
   // Return updated status
   const updatedPost = await Post.findById(post_id).select("likesCount");
   const isLiked = await redis.sismember(redisKey, userIdStr);

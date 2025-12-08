@@ -18,6 +18,7 @@ const getUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, "User fetched successfully", user));
 });
 import { uploadToImageKit, deleteFromImageKit } from "../config/imagekit.js";
+import sendNotification from "../utils/sendNotification.js";
 const uploadProfilePicture = asyncHandler(async (req, res) => {
   const user = req?.user;
   const file = req.file;
@@ -109,12 +110,17 @@ const followUser = asyncHandler(async (req, res) => {
     { _id: userId },
     { $addToSet: { following: user_id } }
   );
-
   await User.updateOne(
     { _id: user_id },
     { $addToSet: { followers: userId } }
   );
-
+  await sendNotification(
+    userId,              // sender
+    user_id,             // receiver
+    "follow",            // type
+    "started following you",  // message
+    {}                   // metadata (empty object)
+  );
   return res
     .status(200)
     .json(new ApiResponse(200, "User followed successfully", null));
