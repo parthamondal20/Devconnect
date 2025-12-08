@@ -9,6 +9,7 @@ DevConnect is a full-stack developer social platform for sharing posts, chatting
 - **Posts**: Create, view, like, and comment on posts. Image uploads supported via ImageKit.
 - **Q&A Platform**: Stack Overflow-style question and answer system with voting, answers, and community engagement.
 - **Chat**: Real-time messaging between users using Socket.io with emoji picker and typing indicators.
+- **Notifications**: Real-time notifications for likes, comments, and messages.
 - **Jobs**: Browse and apply for developer jobs.
 - **Followers**: Follow/unfollow users and view followers/following.
 - **AI Chatbot**: Developer chatbot powered by OpenAI.
