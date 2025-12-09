@@ -170,14 +170,20 @@ const Profile = () => {
 
   const handleAvatarUpload = async (file) => {
     try {
-      setLoading(true);
+      // setLoading(true);
       setMessage("Uploading profile picture...");
       const formData = new FormData();
       formData.append("file", file);
-      const res = await uploadAvatar(formData);
+      const res = await toast.promise(
+        uploadAvatar(formData),
+        {
+          loading: "Uploading...",
+          success: "Profile picture uploaded",
+          error: "Upload failed"
+        }
+      )
       dispatch(setUser(res));
       setAvatarPreview(res.avatar); // Update local preview immediately
-      toast.success("Profile picture uploaded");
     } catch (error) {
       toast.error(error?.response?.data?.error?.message || "Upload failed");
       console.log(error);

@@ -22,5 +22,11 @@ const addComment = async (post_id, text) => {
         throw error;
     }
 }
-
-export { getComments, addComment };
+const deleteComment = async (commentId) => {
+    try {
+        await api.delete(`/comment/${commentId}`);
+    } catch (error) {
+        throw error;
+    }
+}
+export { getComments, addComment, deleteComment };

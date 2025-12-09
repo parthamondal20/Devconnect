@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import socket from '../api/socket';
 import * as notificationService from '../services/notification';
-
+import toast from 'react-hot-toast';
 const NotificationContext = createContext();
 
 export const useNotifications = () => {
@@ -32,10 +32,10 @@ export const NotificationProvider = ({ children }) => {
         if (!user) return;
 
         const handleNewNotification = (notification) => {
+            toast.success(notification.message);
             setNotifications(prev => [notification, ...prev]);
             setUnreadCount(prev => prev + 1);
         };
-
         socket.on('notification:receive', handleNewNotification);
 
         return () => {

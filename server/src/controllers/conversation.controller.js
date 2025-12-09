@@ -3,6 +3,8 @@ import asyncHandler from "../utils/asyncHandler.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import ApiError from "../utils/ApiError.js";
 import Message from "../models/message.model.js";
+import sendNotification from "../utils/sendNotification.js";
+import User from "../models/user.model.js";
 
 // Create a new conversation
 const createConversation = asyncHandler(async (req, res) => {
@@ -31,7 +33,7 @@ const getUserConversations = asyncHandler(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, "Conversations fetched successfully", conversations));
 });
 const sendMessage = asyncHandler(async (req, res) => {
-    const { conversationId, text } = req.body;
+    const { conversationId, text, receiverId } = req.body;
     const senderId = req.user._id;
 
     if (!conversationId || !text) {
@@ -48,10 +50,19 @@ const sendMessage = asyncHandler(async (req, res) => {
     if (!io) {
         throw new ApiError(500, "Socket.io not initialized");
     }
-
     const roomId = String(conversationId);
     io.to(roomId).emit("newMessage", message);
-
+    await sendNotification(
+        senderId,
+        receiverId,
+        "message",
+        "New message",
+        {
+            conversationId,
+            text,
+            senderId,
+        }
+    )
     return res.status(201).json(new ApiResponse(201, "Message sent successfully", message));
 });
 

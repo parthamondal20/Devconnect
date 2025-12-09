@@ -35,7 +35,7 @@ const likePost = asyncHandler(async (req, res) => {
         post.user,
         "like",
         "liked your post",
-        { postId: post._id }
+        { post: post }
       );
     }
   }

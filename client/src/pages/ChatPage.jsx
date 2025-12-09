@@ -1,16 +1,15 @@
 import { useEffect, useState, useRef } from "react";
 import ChatRoom from "./ChatRoom";
 import socket from "../api/socket.js";
-import { useParams, useLocation } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { getConversationById, sendMessage } from "../services/message.js";
-
+import { useSelector } from "react-redux";
 export default function ChatPage() {
     const [messages, setMessages] = useState([]);
     const { conversation_id } = useParams();
-    const location = useLocation();
-    const currentUser = location.state?.currentUser;
     const listenerAttachedRef = useRef(false);
     const messageIdsRef = useRef(new Set());
+    const chatPartner = useSelector((state) => state.chat.chatPartner);
 
     // Clean up old listeners on hot-reload (dev mode)
     useEffect(() => {
@@ -84,7 +83,7 @@ export default function ChatPage() {
     const sendMessageHandler = async (text) => {
         if (!text.trim()) return;
         try {
-            await sendMessage(conversation_id, text);
+            await sendMessage(conversation_id, text, currentUser._id);
         } catch (err) {
             console.error("Error sending message:", err);
         }
@@ -93,7 +92,7 @@ export default function ChatPage() {
     return (
         <ChatRoom
             messages={messages}
-            user={currentUser}
+            user={chatPartner}
             onSendMessage={sendMessageHandler}
         />
     );

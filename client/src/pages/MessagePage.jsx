@@ -2,8 +2,10 @@ import { useState, useEffect, useMemo } from "react";
 import { BrowserRouter as Router, Link } from "react-router-dom";
 import { Search, MoreVertical, CheckCheck, Plus } from "lucide-react";
 import { getConversations } from "../services/message";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import SmallLoader from "../components/SmallLoader.jsx";
+import { useNavigate } from "react-router-dom";
+import { setChatPartner } from "../features/chatSlice.js";
 // Helper function remains the same
 const timeAgo = (date) => {
     const seconds = Math.floor((new Date() - new Date(date)) / 1000);
@@ -35,10 +37,10 @@ const Messages = () => {
     const [conversations, setConversations] = useState([]);
     // New state to hold the results when searching
     const [filteredConversations, setFilteredConversations] = useState([]);
-
     // user state from Redux
     const user = useSelector((state) => state.auth.user);
-
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
     // 1. Initial Data Fetch
     useEffect(() => {
         const fetchConversations = async () => {
@@ -90,7 +92,11 @@ const Messages = () => {
     // Determine which list to render: the filtered list or the full list
     // This is managed within the useEffect now, so we just use filteredConversations
     const listToRender = filteredConversations;
-
+    const handleChatClick = (conversationId, partner) => {
+        dispatch(setChatPartner(partner));
+        navigate(`/chat/${conversationId}`);
+        return;
+    }
     // Add a check to handle the `user` object being potentially undefined on initial load
     // if (!user) {
     //     return <SmallLoader dark={true}/>
@@ -140,11 +146,9 @@ const Messages = () => {
                                 if (!partner) return null;
 
                                 return (
-                                    <Link
+                                    <div
                                         key={convo._id}
-                                        to={`/chat/${convo._id}`}
-                                        // The state prop is for sending data to the chat route
-                                        state={{ currentUser: partner }}
+                                        onClick={() => handleChatClick(convo._id, partner)}
                                         className="group flex items-center gap-4 p-4 bg-white dark:bg-gray-900 hover:bg-blue-50 dark:hover:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm transition-all cursor-pointer"
                                     >
                                         {/* Avatar */}
@@ -191,7 +195,7 @@ const Messages = () => {
                                                 </span>
                                             </div>
                                         )}
-                                    </Link>
+                                    </div>
                                 );
                             })
                         ) : (

@@ -12,7 +12,7 @@ const getConversations = async () => {
 const getConversationById = async (conversationId) => {
     try {
         const res = await api.get(`/message/${conversationId}`);
-        console.log("messages:",res);
+        console.log("messages:", res);
         return res.data.data;
     } catch (error) {
         throw error;
@@ -27,9 +27,9 @@ const createConversation = async (memberIds) => {
         throw error;
     }
 };
-const sendMessage = async (conversationId, text) => {
+const sendMessage = async (conversationId, text, receiverId) => {
     try {
-        const res = await api.post("/message/send", { conversationId, text });
+        const res = await api.post("/message/send", { conversationId, text, receiverId });
         return res.data.data;
     } catch (error) {
         throw error;

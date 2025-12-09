@@ -4,6 +4,7 @@ import Footer from "./components/Footer";
 import { useLocation } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import { Toaster } from 'react-hot-toast';
+import EnableNotifications from "./components/EnableNotifications";
 export default function Layout() {
     const location = useLocation();
     return (

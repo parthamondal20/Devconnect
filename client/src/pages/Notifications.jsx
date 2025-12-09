@@ -9,9 +9,10 @@ import {
     Trash2,
     Settings
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { useNotifications } from '../context/NotificationContext';
-
+import { useDispatch } from 'react-redux';
+import { Link, useNavigate } from 'react-router-dom';
+import { setChatPartner } from '../features/chatSlice';
 const NotificationPage = () => {
     const [filter, setFilter] = useState('all'); // all, unread, read
     const {
@@ -22,13 +23,14 @@ const NotificationPage = () => {
         markAllAsRead: markAllNotificationsAsRead,
         deleteNotification: removeNotification
     } = useNotifications();
-
-    // Filter notifications
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
     const filteredNotifications = notifications.filter(notif => {
         if (filter === 'unread') return !notif.isRead;
         if (filter === 'read') return notif.isRead;
         return true;
     });
+
 
     // Get notification icon based on type
     const getNotificationIcon = (type) => {
@@ -65,6 +67,12 @@ const NotificationPage = () => {
 
     // Get notification link
     const getNotificationLink = (notification) => {
+        if (notification.type === 'message' && notification.metaData?.conversationId) {
+            console.log("its coming here");
+            console.log(notification.sender);
+            dispatch(setChatPartner(notification.sender));
+            return `/chat/${notification.metaData.conversationId}`;
+        }
         if (notification.metaData?.postId) return `/feed`;
         if (notification.type === 'follow') return `/profile/${notification.sender._id}`;
         return '/feed';
@@ -105,8 +113,8 @@ const NotificationPage = () => {
                             <button
                                 onClick={() => setFilter('all')}
                                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${filter === 'all'
-                                        ? 'bg-blue-600 text-white shadow-md'
-                                        : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                                    ? 'bg-blue-600 text-white shadow-md'
+                                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                                     }`}
                             >
                                 All ({notifications.length})
@@ -114,8 +122,8 @@ const NotificationPage = () => {
                             <button
                                 onClick={() => setFilter('unread')}
                                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${filter === 'unread'
-                                        ? 'bg-blue-600 text-white shadow-md'
-                                        : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                                    ? 'bg-blue-600 text-white shadow-md'
+                                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                                     }`}
                             >
                                 Unread ({unreadCount})
@@ -123,8 +131,8 @@ const NotificationPage = () => {
                             <button
                                 onClick={() => setFilter('read')}
                                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${filter === 'read'
-                                        ? 'bg-blue-600 text-white shadow-md'
-                                        : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                                    ? 'bg-blue-600 text-white shadow-md'
+                                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                                     }`}
                             >
                                 Read ({readCount})
@@ -174,14 +182,21 @@ const NotificationPage = () => {
                             filteredNotifications.map((notification) => (
                                 <div
                                     key={notification._id}
-                                    className={`group relative bg-white dark:bg-gray-900 rounded-xl p-4 border transition-all hover:shadow-md ${notification.isRead
-                                            ? 'border-gray-100 dark:border-gray-800'
-                                            : 'border-blue-200 dark:border-blue-800 bg-blue-50/30 dark:bg-blue-900/10'
+                                    className={`group relative bg-white dark:bg-gray-900 rounded-xl p-4 border transition-all hover:shadow-md cursor-pointer ${notification.isRead
+                                        ? 'border-gray-100 dark:border-gray-800'
+                                        : 'border-blue-200 dark:border-blue-800 bg-blue-50/30 dark:bg-blue-900/10'
                                         }`}
+                                    onClick={() => {
+                                        !notification.isRead && markNotificationAsRead(notification._id);
+                                        navigate(getNotificationLink(notification));
+                                    }}
                                 >
                                     <div className="flex gap-4">
                                         {/* User Avatar */}
-                                        <Link to={`/profile/${notification.sender?._id}`}>
+                                        <Link
+                                            to={`/profile/${notification.sender?._id}`}
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
                                             <img
                                                 src={notification.sender?.avatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=user"}
                                                 alt={notification.sender?.username}
@@ -192,9 +207,7 @@ const NotificationPage = () => {
                                         {/* Notification Content */}
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-start justify-between gap-2 mb-1">
-                                                <Link
-                                                    to={getNotificationLink(notification)}
-                                                    onClick={() => !notification.isRead && markNotificationAsRead(notification._id)}
+                                                <div
                                                     className="flex-1"
                                                 >
                                                     <p className="text-sm text-gray-900 dark:text-white">
@@ -206,7 +219,7 @@ const NotificationPage = () => {
                                                             {notification.message}
                                                         </span>
                                                     </p>
-                                                </Link>
+                                                </div>
 
                                                 {/* Notification Type Icon */}
                                                 <div className="flex-shrink-0">
@@ -223,14 +236,20 @@ const NotificationPage = () => {
                                                 <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                     {!notification.isRead && (
                                                         <button
-                                                            onClick={() => markNotificationAsRead(notification._id)}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                markNotificationAsRead(notification._id);
+                                                            }}
                                                             className="text-xs px-2 py-1 rounded-md bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
                                                         >
                                                             Mark as read
                                                         </button>
                                                     )}
                                                     <button
-                                                        onClick={() => removeNotification(notification._id)}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            removeNotification(notification._id);
+                                                        }}
                                                         className="p-1 rounded-md hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
                                                         aria-label="Delete notification"
                                                     >
@@ -239,6 +258,18 @@ const NotificationPage = () => {
                                                 </div>
                                             </div>
                                         </div>
+
+                                        {/* Post Thumbnail (Instagram-style) - Only for like and comment notifications */}
+                                        {(notification.type === 'like' || notification.type === 'comment') &&
+                                            notification.metaData?.post?.images?.[0]?.url && (
+                                                <div className="flex-shrink-0">
+                                                    <img
+                                                        src={notification.metaData.post.images[0].url}
+                                                        alt="Post"
+                                                        className="w-14 h-14 sm:w-16 sm:h-16 rounded-lg object-cover border-2 border-gray-100 dark:border-gray-700 hover:border-blue-500 transition-all hover:scale-105"
+                                                    />
+                                                </div>
+                                            )}
                                     </div>
 
                                     {/* Unread Indicator */}
