@@ -1,6 +1,6 @@
 import { getUserSocker } from "./sockerUserMap.js";
 import Notification from "../models/notification.model.js";
-
+import redis from "../config/redis.js";
 const sendNotification = async (senderId, receiverId, type, message, metadata = {}) => {
     try {
         // Create notification in database
@@ -22,9 +22,14 @@ const sendNotification = async (senderId, receiverId, type, message, metadata = 
 
         if (receiverSocketId && global.io) {
             // Send real-time notification to online user
-            global.io.to(receiverSocketId).emit("notification:receive", notification);
+            global.io.to(receiverSocketId).emit("new_notification", notification);
+            await Notification.findByIdAndUpdate(notification._id, {
+                isDelivered: true
+            })
+        } else {
+            console.log("user is offline");
+            await redis.lpush(`notification:pending:${receiverId}`, JSON.stringify(notification));
         }
-
         return notification;
     } catch (error) {
         console.error("Error sending notification:", error);

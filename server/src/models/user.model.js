@@ -79,6 +79,13 @@ const userSchema = new Schema(
       type: String,
       default: null
     },
+    searchHistory: [{
+      userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+      username: String,
+      avatar: String,
+      searchedAt: { type: Date, default: Date.now },
+    }
+    ],
   },
   {
     timestamps: true,

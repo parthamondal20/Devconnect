@@ -8,7 +8,11 @@ import {
   getFollowers,
   getFollowing,
   searchUser,
-  editProfile
+  editProfile,
+  addToSearchHistory,
+  getSearchHistory,
+  clearSearchHistory,
+  deleteSearchHistoryItem
 } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 router.get("/search", searchUser);
@@ -18,6 +22,10 @@ router.get("/following", getFollowing);
 router.put("/profile/edit", editProfile);
 router.put("/upload-avatar", upload.single("file"), uploadProfilePicture);
 router.post("/follow", followUser);
-router.get("/:user_id", getUserProfile);
+router.get("/profile/:user_id", getUserProfile);
+router.get("/search-history", getSearchHistory);
+router.post("/search-history/add", addToSearchHistory);
+router.delete("/search-history/clear", clearSearchHistory);
+router.delete("/search-history/:searchHistoryId", deleteSearchHistoryItem);
 
 export default router;

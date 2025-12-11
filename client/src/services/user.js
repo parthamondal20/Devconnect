@@ -21,7 +21,7 @@ const editProfile = async (payload) => {
 const getUserProfile = async (userId) => {
   try {
     // Public user route (no auth required)
-    const res = await api.get(`/user/${userId}`);
+    const res = await api.get(`/user/profile/${userId}`);
     console.log(res);
     return res.data.data;
   } catch (error) {
@@ -77,4 +77,35 @@ const searchUser = async (query) => {
     throw error;
   }
 }
-export { getUser, uploadAvatar, getUserProfile, followUser, getFollowers, searchUser, getFollowing, editProfile };
+const addToSearchHistory = async (searchedUser) => {
+  try {
+    const res = await api.post(`/user/search-history/add`, {
+      searchedUser
+    });
+  } catch (error) {
+    throw error;
+  }
+}
+const getSearchHistory = async () => {
+  try {
+    const res = await api.get(`/user/search-history`);
+    return res.data.data;
+  } catch (error) {
+    throw error;
+  }
+}
+const clearSearchHistory = async () => {
+  try {
+    const res = await api.delete(`/user/search-history/clear`);
+  } catch (error) {
+    throw error;
+  }
+}
+const deleteSearchHistoryItem = async (searchHistoryId) => {
+  try {
+    const res = await api.delete(`/user/search-history/${searchHistoryId}`);
+  } catch (error) {
+    throw error;
+  }
+}
+export { getUser, uploadAvatar, getUserProfile, followUser, getFollowers, searchUser, getFollowing, editProfile, addToSearchHistory, getSearchHistory, clearSearchHistory, deleteSearchHistoryItem };

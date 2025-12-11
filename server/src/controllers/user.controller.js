@@ -206,4 +206,77 @@ const searchUser = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, "search results", users));
 })
-export { getUser, uploadProfilePicture, getUserProfile, followUser, getFollowers, getFollowing, searchUser, editProfile };
+
+
+const addToSearchHistory = asyncHandler(async (req, res) => {
+  const user_id = req.user._id;
+  const { searchedUser } = req.body;
+  const user = await User.findById(user_id);
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+  user.searchHistory = user.searchHistory.filter(
+    (s) => !s.userId.equals(searchedUser._id)
+  );
+
+  user.searchHistory.unshift({
+    userId: searchedUser._id,
+    username: searchedUser.username,
+    avatar: searchedUser.avatar,
+    searchedAt: new Date(),
+  });
+
+  user.searchHistory = user.searchHistory.slice(0, 10);
+  await user.save();
+  return res.status(200).json(new ApiResponse(200, "Search history updated successfully", null));
+
+});
+
+
+const getSearchHistory = asyncHandler(async (req, res) => {
+  const user_id = req.user._id;
+  const user = await User.findById(user_id).select("searchHistory");
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+  return res.status(200).json(new ApiResponse(200, "Search history fetched successfully", user.searchHistory));
+})
+
+const clearSearchHistory = asyncHandler(async (req, res) => {
+  const user_id = req.user._id;
+  const user = await User.findById(user_id);
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+  user.searchHistory = [];
+  await user.save();
+  return res.status(200).json(new ApiResponse(200, "Search history cleared successfully", null));
+});
+
+const deleteSearchHistoryItem = asyncHandler(async (req, res) => {
+  const user_id = req.user._id;
+  const { searchHistoryId } = req.params;
+  const user = await User.findById(user_id);
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+  user.searchHistory = user.searchHistory.filter(
+    (s) => !s._id.equals(searchHistoryId)
+  );
+  await user.save();
+  return res.status(200).json(new ApiResponse(200, "Search history item deleted successfully", null));
+});
+export {
+  getUser,
+  uploadProfilePicture,
+  getUserProfile,
+  followUser,
+  getFollowers,
+  getFollowing,
+  searchUser,
+  editProfile,
+  addToSearchHistory,
+  getSearchHistory,
+  clearSearchHistory,
+  deleteSearchHistoryItem
+};

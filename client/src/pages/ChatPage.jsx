@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import ChatRoom from "./ChatRoom";
-import socket from "../api/socket.js";
+import socket, { connectSocket } from "../api/socket.js";
 import { useParams } from "react-router-dom";
 import { getConversationById, sendMessage } from "../services/message.js";
 import { useSelector } from "react-redux";
@@ -10,14 +10,21 @@ export default function ChatPage() {
     const listenerAttachedRef = useRef(false);
     const messageIdsRef = useRef(new Set());
     const chatPartner = useSelector((state) => state.chat.chatPartner);
+    const currentUser = useSelector((state) => state.auth.user);
 
     // Clean up old listeners on hot-reload (dev mode)
     useEffect(() => {
+        // Connect socket with CURRENT USER's ID, not chat partner's ID
+        if (currentUser?._id) {
+            if (!socket.connected) {
+                connectSocket(currentUser._id);
+            }
+        }
         return () => {
             // Reset the flag on unmount so new listeners can attach
             listenerAttachedRef.current = false;
         };
-    }, []);
+    }, [currentUser?._id]);
 
     // Load initial messages
     useEffect(() => {
@@ -37,15 +44,17 @@ export default function ChatPage() {
     // Connect socket ONCE and attach listener
     useEffect(() => {
         if (!socket.connected) {
-            socket.connect();
+            connectSocket(currentUser._id);
         }
 
         // Attach newMessage listener ONCE - never remove it
         if (!listenerAttachedRef.current) {
             socket.on("newMessage", (msg) => {
                 // O(1) deduplication using Set
+                console.log("new message received", msg);
                 const msgId = msg._id.toString();
                 if (messageIdsRef.current.has(msgId)) {
+                    console.log("message already exists");
                     return; // Message already exists, skip
                 }
                 messageIdsRef.current.add(msgId);
@@ -70,7 +79,7 @@ export default function ChatPage() {
         }
 
         const handleJoinedRoom = (data) => {
-            // Room joined successfully
+            console.log("✅ Successfully joined room:", data);
         };
         socket.on("joinedRoom", handleJoinedRoom);
 
@@ -83,7 +92,7 @@ export default function ChatPage() {
     const sendMessageHandler = async (text) => {
         if (!text.trim()) return;
         try {
-            await sendMessage(conversation_id, text, currentUser._id);
+            await sendMessage(conversation_id, text, chatPartner._id);
         } catch (err) {
             console.error("Error sending message:", err);
         }
@@ -92,8 +101,8 @@ export default function ChatPage() {
     return (
         <ChatRoom
             messages={messages}
-            user={chatPartner}
             onSendMessage={sendMessageHandler}
+            user={chatPartner}
         />
     );
 }

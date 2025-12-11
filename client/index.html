@@ -6,6 +6,23 @@
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>devconnect</title>
+  
+  <!-- Apply dark mode immediately to prevent flash -->
+  <script>
+    (function() {
+      try {
+        const appStore = localStorage.getItem('appStore');
+        if (appStore) {
+          const store = JSON.parse(appStore);
+          if (store.theme && store.theme.dark) {
+            document.documentElement.classList.add('dark');
+          }
+        }
+      } catch (e) {
+        console.error('Error loading theme:', e);
+      }
+    })();
+  </script>
 </head>
 
 <body>

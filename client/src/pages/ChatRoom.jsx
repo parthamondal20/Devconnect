@@ -14,14 +14,16 @@ import {
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import EmojiPickerComponent from "../components/EmojiPickerComponent";
-
+import socket from "../api/socket.js";
 export default function ChatRoom({ messages, onSendMessage, user: chatPartner }) {
   const [text, setText] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [partnerIsTyping, setPartnerIsTyping] = useState(false);
   const emojiRef = useRef(null);
   const chatEndRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
   const navigate = useNavigate();
-  console.log(chatPartner);
+  // const chatPartner = useSelector((state) => state.chat.chatPartner);
   // Logged in user from Redux
   const { user } = useSelector((state) => state.auth);
 
@@ -41,6 +43,31 @@ export default function ChatRoom({ messages, onSendMessage, user: chatPartner })
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Listen for typing events from chat partner
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleTyping = ({ fromUserId }) => {
+      if (fromUserId === chatPartner._id) {
+        setPartnerIsTyping(true);
+      }
+    };
+
+    const handleStopTyping = ({ fromUserId }) => {
+      if (fromUserId === chatPartner._id) {
+        setPartnerIsTyping(false);
+      }
+    };
+
+    socket.on("typing", handleTyping);
+    socket.on("stop-typing", handleStopTyping);
+
+    return () => {
+      socket.off("typing", handleTyping);
+      socket.off("stop-typing", handleStopTyping);
+    };
+  }, [chatPartner?._id]);
+
   const handleSend = () => {
     if (!text.trim()) return;
     onSendMessage(text);
@@ -53,7 +80,29 @@ export default function ChatRoom({ messages, onSendMessage, user: chatPartner })
       handleSend();
     }
   };
+  // Debounced typing indicator
+  const handleTyping = () => {
+    if (!socket || !chatPartner?._id) return;
 
+    // Emit typing event
+    socket.emit("typing", { toUserId: chatPartner._id });
+
+    // Clear previous timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Set timeout to emit stop-typing after 1 second of inactivity
+    typingTimeoutRef.current = setTimeout(() => {
+      socket.emit("stop-typing", { toUserId: chatPartner._id });
+    }, 1000);
+  };
+
+  // Handle text change with typing indicator
+  const handleTextChange = (e) => {
+    setText(e.target.value);
+    handleTyping();
+  };
   return (
     <div className="flex flex-col h-screen bg-[#F0F2F5] dark:bg-[#0b141a] transition-colors duration-200">
 
@@ -169,6 +218,25 @@ export default function ChatRoom({ messages, onSendMessage, user: chatPartner })
             </div>
           );
         })}
+
+        {/* Typing Indicator */}
+        {partnerIsTyping && (
+          <div className="flex justify-start w-full">
+            <div className="flex max-w-[85%] md:max-w-[70%] gap-2">
+              <div className="flex-shrink-0 w-8 flex items-end">
+                <img src={chatPartner.avatar} alt="user" className="w-8 h-8 rounded-full object-cover" />
+              </div>
+              <div className="bg-white dark:bg-[#202c33] px-4 py-3 rounded-2xl rounded-tl-sm shadow-sm">
+                <div className="flex gap-1 items-center">
+                  <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                  <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                  <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div ref={chatEndRef} />
       </div>
 
@@ -192,7 +260,7 @@ export default function ChatRoom({ messages, onSendMessage, user: chatPartner })
             className="flex-1 bg-transparent text-gray-900 dark:text-gray-100 resize-none focus:outline-none max-h-32 py-1"
             placeholder="Type a message..."
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={handleTextChange}
             onKeyDown={handleKeyDown}
             style={{ minHeight: '24px' }} // prevent collapse
           />

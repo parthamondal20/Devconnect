@@ -33,13 +33,14 @@ export const NotificationProvider = ({ children }) => {
 
         const handleNewNotification = (notification) => {
             toast.success(notification.message);
+            console.log("new notification received", notification);
             setNotifications(prev => [notification, ...prev]);
             setUnreadCount(prev => prev + 1);
         };
-        socket.on('notification:receive', handleNewNotification);
+        socket.on('new_notification', handleNewNotification);
 
         return () => {
-            socket.off('notification:receive', handleNewNotification);
+            socket.off('new_notification', handleNewNotification);
         };
     }, [user]);
 

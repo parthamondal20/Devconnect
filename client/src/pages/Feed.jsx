@@ -25,6 +25,7 @@ import PostLoader from "../components/PostLoader";
 import { SkeletonTheme } from 'react-loading-skeleton';
 import FeedLoader from "../components/FeedLoader";
 import ConfirmModal from "../components/ConfirmModal";
+import PageLoader from "../components/PageLoader";
 // Sidebar import removed per request
 // Helper for relative time (Simple version)
 const timeAgo = (date) => {
@@ -160,7 +161,7 @@ const Feed = () => {
   }, [selectedImage]);
 
   if (loading) {
-    return <Loader loading={loading} />
+    return <PageLoader loading={loading} />
   }
 
   return (
