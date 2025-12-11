@@ -144,14 +144,34 @@ const signin = asyncHandler(async (req, res) => {
 
 const verifyOTP = asyncHandler(async (req, res) => {
   const { email, otp } = req.body;
+
+  console.log("=== OTP Verification Debug ===");
+  console.log("Email:", email);
+  console.log("Received OTP:", otp, "Type:", typeof otp);
+
   const savedOTP = await client.get(email);
+  console.log("Saved OTP from Redis:", savedOTP, "Type:", typeof savedOTP);
+
   if (!savedOTP) {
-    throw new ApiError(400, "OTP expired");
+    console.log("❌ OTP not found in Redis (expired or never sent)");
+    throw new ApiError(400, "OTP expired or not found");
   }
-  if (savedOTP !== otp) {
+
+  // Convert both to strings and trim whitespace
+  const receivedOTP = String(otp).trim();
+  const storedOTP = String(savedOTP).trim();
+
+  console.log("After conversion - Received:", receivedOTP, "Stored:", storedOTP);
+  console.log("Match:", receivedOTP === storedOTP);
+
+  if (storedOTP !== receivedOTP) {
+    console.log("❌ OTP mismatch!");
     throw new ApiError(400, "Invalid OTP");
   }
+
+  console.log("✅ OTP verified successfully");
   await client.del(email);
+
   return res
     .status(200)
     .json(new ApiResponse(200, "OTP verified successfully"));
@@ -159,40 +179,92 @@ const verifyOTP = asyncHandler(async (req, res) => {
 
 const sendOTP = asyncHandler(async (req, res) => {
   const { email } = req.body;
+
+  if (!email) {
+    throw new ApiError(400, "Email is required");
+  }
+
+  // Check if user already exists
   const user = await User.findOne({ email });
   if (user) {
     throw new ApiError(
       400,
-      "Already had a account using this email ! Please login "
+      "An account with this email already exists. Please sign in instead."
     );
   }
-  if (!email) {
-    throw new ApiError(400, "Email is missing");
+
+  try {
+    const OTP = generateOTP();
+    console.log(`Generated OTP for ${email}: ${OTP}`); // For debugging in development
+
+    await sendEmail({
+      to: email,
+      subject: "DevConnect - Email Verification",
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #4F46E5;">Welcome to DevConnect!</h2>
+          <p>Your verification code is:</p>
+          <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; text-align: center; margin: 20px 0;">
+            <h1 style="color: #4F46E5; margin: 0; font-size: 32px; letter-spacing: 8px;">${OTP}</h1>
+          </div>
+          <p style="color: #6b7280;">This code will expire in <strong>5 minutes</strong>.</p>
+          <p style="color: #6b7280; font-size: 12px; margin-top: 20px;">
+            If you didn't request this code, please ignore this email.
+          </p>
+        </div>
+      `,
+    });
+
+    await client.setex(email, 300, OTP);
+    console.log(`OTP stored in Redis for ${email}`);
+
+    return res.status(200).json(new ApiResponse(200, "OTP sent successfully to your email"));
+  } catch (error) {
+    console.error("Error sending OTP:", error);
+    throw new ApiError(500, `Failed to send OTP: ${error.message}`);
   }
-  const OTP = generateOTP();
-  await sendEmail({
-    to: email,
-    subject: "Verification OTP",
-    html: `Otp is <strong>${OTP}</strong>, this otp going to expire in 5 min`,
-  });
-  await client.setEx(email, 300, OTP);
-  return res.status(200).json(new ApiResponse(200, "OTP is sent successfully"));
 });
 
 const resendOTP = asyncHandler(async (req, res) => {
   const { email } = req.body;
+
   if (!email) {
-    throw new ApiError(400, "Email not found! Try again!");
+    throw new ApiError(400, "Email is required");
   }
-  await client.del(email);
-  const OTP = generateOTP();
-  await sendEmail({
-    to: email,
-    subject: "Verification OTP",
-    html: `Otp is <strong>${OTP}</strong>, this otp going to expire in 5 min`,
-  });
-  await client.setEx(email, 300, OTP);
-  return res.status(200).json(new ApiResponse(200, "OTP resent successfully"));
+
+  try {
+    // Delete old OTP if exists
+    await client.del(email);
+
+    const OTP = generateOTP();
+    console.log(`Resending OTP for ${email}: ${OTP}`); // For debugging in development
+
+    await sendEmail({
+      to: email,
+      subject: "DevConnect - New Verification Code",
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #4F46E5;">DevConnect Verification</h2>
+          <p>You requested a new verification code:</p>
+          <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; text-align: center; margin: 20px 0;">
+            <h1 style="color: #4F46E5; margin: 0; font-size: 32px; letter-spacing: 8px;">${OTP}</h1>
+          </div>
+          <p style="color: #6b7280;">This code will expire in <strong>5 minutes</strong>.</p>
+          <p style="color: #6b7280; font-size: 12px; margin-top: 20px;">
+            If you didn't request this code, please ignore this email.
+          </p>
+        </div>
+      `,
+    });
+
+    await client.setex(email, 300, OTP);
+    console.log(`New OTP stored in Redis for ${email}`);
+
+    return res.status(200).json(new ApiResponse(200, "New OTP sent successfully"));
+  } catch (error) {
+    console.error("Error resending OTP:", error);
+    throw new ApiError(500, `Failed to resend OTP: ${error.message}`);
+  }
 });
 
 import jwt from "jsonwebtoken";

@@ -212,7 +212,7 @@ const Profile = () => {
     return <Loader message={message} loading={loading} />;
   }
 
-  const isOwnProfile = profileUser._id === user._id;
+  const isOwnProfile = profileUser?._id === user?._id;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#09090b] transition-colors duration-300">

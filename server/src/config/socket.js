@@ -26,7 +26,6 @@ export default function initSocket(httpServer) {
         socket.on("joinConversation", (conversationId) => {
             const roomId = String(conversationId);
             socket.join(roomId);
-            console.log(`✅ User ${userId} (socket ${socket.id}) joined room ${roomId}`);
             // Acknowledge successful room join
             socket.emit("joinedRoom", { conversationId: roomId, success: true });
         });

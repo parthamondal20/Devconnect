@@ -45,7 +45,7 @@ export default function ConfirmModal({ isOpen, onClose, onConfirm, title, messag
                         }}
                         className="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold transition-all transform hover:scale-105 active:scale-95 shadow-lg shadow-red-500/25"
                     >
-                        Delete
+                        Confirm
                     </button>
                 </div>
             </div>

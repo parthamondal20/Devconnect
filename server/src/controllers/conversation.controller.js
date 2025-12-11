@@ -51,19 +51,7 @@ const sendMessage = asyncHandler(async (req, res) => {
         throw new ApiError(500, "Socket.io not initialized");
     }
     const roomId = String(conversationId);
-    console.log(`📤 Emitting newMessage to room ${roomId}. Message:`, message._id);
     io.to(roomId).emit("newMessage", message);
-    // await sendNotification(
-    //     senderId,
-    //     receiverId,
-    //     "message",
-    //     "New message",
-    //     {
-    //         conversationId,
-    //         text,
-    //         senderId,
-    //     }
-    // )
     return res.status(201).json(new ApiResponse(201, "Message sent successfully", message));
 });
 

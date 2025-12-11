@@ -1,14 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, Lock } from "lucide-react";
-import githubLogo from "../assets/github.svg"
-import linkedinLogo from "../assets/linkedin.svg"
-import { githubLogin, sendOTP } from "../services/auth";
+import { Mail } from "lucide-react";
+import githubLogo from "../assets/github.svg";
+import { sendOTP } from "../services/auth";
 import Loader from "../components/Loader";
-import { useSelector } from "react-redux";
-import { setUser } from "../features/authSlice";
+import { useSelector, useDispatch } from "react-redux";
 import { showError, showSuccess } from "../utils/toast";
-import { useDispatch } from "react-redux";
+import { setUser } from "../features/authSlice";
 import { getUser } from "../services/user";
 const SignUp = () => {
     const [email, setEmail] = useState("");
@@ -21,6 +19,7 @@ const SignUp = () => {
     const [message, setMessage] = useState("Loading...")
     const { user } = useSelector(state => state.auth);
     const serverURL = import.meta.env.VITE_BACKEND_URL;
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!email.trim()) {
@@ -42,12 +41,14 @@ const SignUp = () => {
             setLoading(false);
         }
     };
+
     useEffect(() => {
         if (user) {
             // already logged in → redirect to feed
             navigate("/feed", { replace: true });
         }
     }, [user, navigate]);
+
     const handleOAuthLogin = (provider) => {
         setLoading(true);
 
@@ -68,7 +69,7 @@ const SignUp = () => {
                 clearInterval(popupTick);
 
                 try {
-                    const data = await getUser(); // backend reads cookie
+                    const data = await getUser();
                     dispatch(setUser(data));
                     showSuccess("Logged in successfully");
                     navigate("/feed", { replace: true });
@@ -89,104 +90,127 @@ const SignUp = () => {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4">
-            <div className="max-w-md w-full bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-800">
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white text-center mb-6">
-                    Create your account
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4 py-8">
+            <div className="max-w-md w-full bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800">
+                <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
+                    Create account
                 </h1>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">
+                    Join DevConnect today
+                </p>
 
-                <form onSubmit={handleSubmit} className="space-y-4 mb-3">
-                    <div className="relative">
-
-                        <p className="dark:text-white">Username<span className="text-red-500">*</span></p>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                            Username
+                        </label>
                         <input
-                            type="username"
+                            type="text"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
+                            placeholder="johndoe"
                             required
-                            className="w-full pl-4 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 outline-none"
+                            className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 
+                            bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 
+                            placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
+                            outline-none transition"
                         />
                     </div>
 
-                    <div className="relative">
-
-                        <p className="dark:text-white">Email <span className="text-red-500">*</span></p>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                            Email
+                        </label>
                         <input
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
+                            placeholder="you@example.com"
                             required
-                            className="w-full pl-4 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 outline-none"
+                            className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 
+                            bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 
+                            placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
+                            outline-none transition"
                         />
                     </div>
 
-
-                    <div className="relative">
-                        <p className="dark:text-white">Password <span className="text-red-500">*</span></p>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                            Password
+                        </label>
                         <input
                             type={show ? "text" : "password"}
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
+                            placeholder="Create a password"
                             required
-                            className="w-full pl-4 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 outline-none"
+                            className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 
+                            bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 
+                            placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
+                            outline-none transition"
                         />
                     </div>
 
-
-                    <label className="flex items-center gap-2 cursor-pointer select-none text-gray-700 dark:text-gray-300 text-sm mt-2">
+                    <label className="flex items-center gap-2 cursor-pointer select-none text-gray-600 dark:text-gray-400 text-sm">
                         <input
                             type="checkbox"
                             checked={show}
                             onChange={() => setShow(!show)}
-                            className="w-4 h-4 accent-blue-500 rounded focus:ring-2 focus:ring-blue-400 cursor-pointer"
+                            className="w-4 h-4 accent-blue-600 rounded cursor-pointer"
                         />
-                        Show Password
+                        Show password
                     </label>
 
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full py-2 bg-gradient-to-r cursor-pointer from-blue-500 to-purple-600 text-white rounded-lg font-medium hover:opacity-90 transition"
+                        className="w-full mt-6 py-2.5 bg-blue-600 text-white rounded-lg font-medium 
+                        hover:bg-blue-700 transition-colors 
+                        disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        Sign Up
+                        Create Account
                     </button>
-                    <div className="flex items-center my-4 gap-2 text-gray-400">
-                        <span className="flex-grow border-t border-gray-300 dark:border-gray-700"></span>
-                        <span>or continue with</span>
-                        <span className="flex-grow border-t border-gray-300 dark:border-gray-700"></span>
-                    </div>
-
                 </form>
-                <div className="flex flex-col gap-3 cursor-pointer">
+
+                {/* Divider */}
+                <div className="flex items-center my-6 gap-2">
+                    <span className="flex-grow border-t border-gray-200 dark:border-gray-800"></span>
+                    <span className="text-xs text-gray-400 dark:text-gray-500">OR</span>
+                    <span className="flex-grow border-t border-gray-200 dark:border-gray-800"></span>
+                </div>
+
+                {/* OAuth Buttons */}
+                <div className="space-y-2.5">
                     <button
                         onClick={() => handleOAuthLogin("github")}
-                        className="flex items-center justify-center gap-2 py-2 rounded-lg bg-white text-gray-800 border border-gray-300 hover:bg-gray-100 transition"
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg 
+                        border border-gray-300 dark:border-gray-700 
+                        hover:bg-gray-50 dark:hover:bg-gray-800 
+                        text-gray-700 dark:text-gray-300 transition-colors"
                     >
-                        <img
-                            src={githubLogo}
-                            alt="Github Logo"
-                            className="w-5 h-5"
-                        />
-                        Continue with Github
+                        <img src={githubLogo} alt="GitHub" className="w-5 h-5" />
+                        <span className="text-sm font-medium">Continue with GitHub</span>
                     </button>
                     <button
                         onClick={() => handleOAuthLogin("google")}
-                        className="flex items-center justify-center gap-2 py-2 rounded-lg bg-white text-gray-800 border border-gray-300 hover:bg-gray-100 transition"
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg 
+                        border border-gray-300 dark:border-gray-700 
+                        hover:bg-gray-50 dark:hover:bg-gray-800 
+                        text-gray-700 dark:text-gray-300 transition-colors"
                     >
                         <img
                             src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-                            alt="Google Logo"
+                            alt="Google"
                             className="w-5 h-5"
                         />
-                        Continue with Google
+                        <span className="text-sm font-medium">Continue with Google</span>
                     </button>
-
                 </div>
 
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-4 text-center">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-6 text-center">
                     Already have an account?{" "}
-                    <Link to="/signin" className="text-blue-500 hover:underline">
-                        Sign In
+                    <Link to="/signin" className="text-blue-600 dark:text-blue-500 font-medium hover:underline">
+                        Sign in
                     </Link>
                 </p>
             </div>
