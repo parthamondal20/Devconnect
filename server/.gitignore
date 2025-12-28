@@ -14,6 +14,9 @@ node_modules
 dist
 dist-ssr
 
+# Firebase Admin SDK
+firebase-admin.json
+
 # Local environment
 *.local
 .env

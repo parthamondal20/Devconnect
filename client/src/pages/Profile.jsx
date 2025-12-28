@@ -465,18 +465,27 @@ const Profile = () => {
                     )}
 
                     {/* Image Grid */}
-                    {post.images?.length > 0 && (
-                      <div className={`grid gap-2 rounded-xl overflow-hidden ${post.images.length === 1 ? 'grid-cols-1' : 'grid-cols-2'
-                        }`}>
-                        {post.images.slice(0, 4).map((img, idx) => (
-                          <div key={idx} className={`relative ${post.images.length === 1 ? 'aspect-video' : 'aspect-square'}`}>
-                            <img
-                              src={img.url}
-                              alt="post content"
-                              className="absolute inset-0 w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                    {post.images && post.images.length > 0 && (
+                      <div className="mt-4 rounded-xl overflow-hidden border border-gray-200/50 dark:border-gray-800/50 shadow-inner">
+                        {post.images.length === 1 ? (
+                          <img
+                            src={post.images[0].url}
+                            alt="post"
+                            // onClick={() => openFullscreenImage(post.images.map(img => img.url), 0)}
+                            className="w-full max-h-[500px] object-cover cursor-zoom-in hover:opacity-95 transition-all duration-300 active:scale-[0.99]"
+                          />
+                        ) : (
+                          <div className="aspect-video bg-gradient-to-br from-gray-900 to-black">
+                            <ImageCarousel
+                              images={post.images}
+                            // onImageClick={(url) => {
+                            //   const imageUrls = post.images.map(img => img.url);
+                            //   const index = imageUrls.indexOf(url);
+                            //   openFullscreenImage(imageUrls, index);
+                            // }}
                             />
                           </div>
-                        ))}
+                        )}
                       </div>
                     )}
                   </div>

@@ -18,7 +18,7 @@ import { searchUser } from "../services/user";
 import useDebounce from "../hooks/useDebounce";
 import { connectSocket } from "../api/socket";
 import { useNotifications } from "../context/NotificationContext";
-
+import { requestPushPermission } from "../utils/pushPermissions";
 import { addToSearchHistory, deleteSearchHistoryItem, clearSearchHistory, getSearchHistory } from "../services/user";
 import SearchHistoryDropdown from "./SearchHistoryDropdown";
 const Header = () => {

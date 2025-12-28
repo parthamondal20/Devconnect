@@ -12,7 +12,8 @@ import {
   addToSearchHistory,
   getSearchHistory,
   clearSearchHistory,
-  deleteSearchHistoryItem
+  deleteSearchHistoryItem,
+  saveToken
 } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 router.get("/search", searchUser);
@@ -23,9 +24,9 @@ router.put("/profile/edit", editProfile);
 router.put("/upload-avatar", upload.single("file"), uploadProfilePicture);
 router.post("/follow", followUser);
 router.get("/profile/:user_id", getUserProfile);
+router.post("/save-token", saveToken);
 router.get("/search-history", getSearchHistory);
 router.post("/search-history/add", addToSearchHistory);
 router.delete("/search-history/clear", clearSearchHistory);
 router.delete("/search-history/:searchHistoryId", deleteSearchHistoryItem);
-
 export default router;

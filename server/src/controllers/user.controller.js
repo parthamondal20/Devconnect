@@ -266,6 +266,18 @@ const deleteSearchHistoryItem = asyncHandler(async (req, res) => {
   await user.save();
   return res.status(200).json(new ApiResponse(200, "Search history item deleted successfully", null));
 });
+
+const saveToken = asyncHandler(async (req, res) => {
+  const user_id = req.user._id;
+  const { token } = req.body;
+  await User.findByIdAndUpdate(user_id, {
+    $addToSet: {
+      fcmTokens: token
+    }
+  })
+  return res.status(200).json(new ApiResponse(200, "Token saved successfully", null));
+});
+
 export {
   getUser,
   uploadProfilePicture,
@@ -278,5 +290,6 @@ export {
   addToSearchHistory,
   getSearchHistory,
   clearSearchHistory,
-  deleteSearchHistoryItem
+  deleteSearchHistoryItem,
+  saveToken
 };

@@ -5,6 +5,8 @@ import ApiResponse from "../utils/ApiResponse.js";
 import Post from "../models/post.model.js";
 import redis from "../config/redis.js";
 import sendNotification from "../utils/sendNotification.js";
+import { sendMessageNotification } from "../utils/sendMessageNotification.js";
+import User from "../models/user.model.js";
 const likePost = asyncHandler(async (req, res) => {
   const { post_id } = req.params;
   const post = await Post.findById(post_id);
@@ -27,6 +29,24 @@ const likePost = asyncHandler(async (req, res) => {
     await Like.create({ user: userId, post: post_id });
     await Post.findByIdAndUpdate(post_id, { $inc: { likesCount: 1 } });
     await redis.sadd(redisKey, userIdStr);
+
+    // Send push notification
+    try {
+      const postOwner = await User.findById(post.user);
+      const liker = await User.findById(userId);
+
+      if (postOwner.fcmTokens && postOwner.fcmTokens.length > 0) {
+        await sendMessageNotification(
+          postOwner.fcmTokens,
+          liker.username,
+          post_id,
+          `${liker.username} liked your post`,
+          post.user
+        );
+      }
+    } catch (notifError) {
+      console.error("Error sending push notification:", notifError.message);
+    }
 
     // Send notification if not liking own post
     if (post.user.toString() !== userId.toString()) {

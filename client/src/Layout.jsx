@@ -6,9 +6,17 @@ import { useLocation } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import { Toaster } from 'react-hot-toast';
 import EnableNotifications from "./components/EnableNotifications";
+import { useEffect } from "react";
+import { setupForegroundMessageHandler } from "./utils/foregroundMessageHandler";
+
 export default function Layout() {
     const location = useLocation();
     const showBottomNav = !location.pathname.includes("/chat");
+
+    // Setup foreground message handler on component mount
+    useEffect(() => {
+        setupForegroundMessageHandler();
+    }, []);
 
     return (
         <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 transition-colors duration-300">

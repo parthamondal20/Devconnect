@@ -8,7 +8,12 @@ import {
   X,
   Send,
   Smile,
-  Calendar
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  ZoomIn,
+  ZoomOut,
+  Download
 } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -52,6 +57,9 @@ const Feed = () => {
   const navigate = useNavigate();
 
   const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [allImages, setAllImages] = useState([]);
+  const [zoomLevel, setZoomLevel] = useState(1);
   const [menuOpen, setMenuOpen] = useState(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
   const [openPostModal, setOpenPostModal] = useState(false);
@@ -66,6 +74,54 @@ const Feed = () => {
   const handleFollow = async (userId) => {
     toast.success("Follow feature coming soon!");
     // Add actual API call logic here
+  };
+
+  // Enhanced fullscreen preview functions
+  const openFullscreenImage = (images, index = 0) => {
+    setAllImages(images);
+    setSelectedImageIndex(index);
+    setSelectedImage(images[index]);
+    setZoomLevel(1);
+  };
+
+  const closeFullscreenImage = () => {
+    setSelectedImage(null);
+    setAllImages([]);
+    setSelectedImageIndex(0);
+    setZoomLevel(1);
+  };
+
+  const navigateImage = (direction) => {
+    if (allImages.length === 0) return;
+    const newIndex = direction === 'next'
+      ? (selectedImageIndex + 1) % allImages.length
+      : (selectedImageIndex - 1 + allImages.length) % allImages.length;
+    setSelectedImageIndex(newIndex);
+    setSelectedImage(allImages[newIndex]);
+    setZoomLevel(1);
+  };
+
+  const handleZoomIn = () => {
+    setZoomLevel(prev => Math.min(prev + 0.25, 3));
+  };
+
+  const handleZoomOut = () => {
+    setZoomLevel(prev => Math.max(prev - 0.25, 0.5));
+  };
+
+  const resetZoom = () => {
+    setZoomLevel(1);
+  };
+
+  const downloadImage = () => {
+    if (!selectedImage) return;
+    const link = document.createElement('a');
+    link.href = selectedImage;
+    link.download = `image-${Date.now()}.jpg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('Image download started!');
   };
 
   const sendLikeRequest = useCallback(
@@ -146,7 +202,13 @@ const Feed = () => {
 
   useEffect(() => {
     const handleKey = (e) => {
-      if (e.key === "Escape") setSelectedImage(null);
+      if (e.key === "Escape") {
+        closeFullscreenImage();
+      } else if (e.key === "ArrowLeft" && allImages.length > 1) {
+        navigateImage('prev');
+      } else if (e.key === "ArrowRight" && allImages.length > 1) {
+        navigateImage('next');
+      }
     };
     if (selectedImage) {
       document.body.style.overflow = "hidden";
@@ -158,15 +220,15 @@ const Feed = () => {
       document.body.style.overflow = "";
       window.removeEventListener("keydown", handleKey);
     };
-  }, [selectedImage]);
+  }, [selectedImage, allImages, selectedImageIndex]);
 
   if (loading) {
     return <PageLoader loading={loading} />
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-black text-gray-900 dark:text-gray-100">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-50 to-blue-50/30 dark:bg-gradient-to-br dark:from-black dark:via-gray-950 dark:to-black text-gray-900 dark:text-gray-100">
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6">
         {/* Adjusted Grid: No Left Sidebar, Just Feed + Right Suggestions */}
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8 justify-center">
 
@@ -174,7 +236,7 @@ const Feed = () => {
           <div className="w-full max-w-2xl mx-auto space-y-6">
 
             {/* Create Post Card */}
-            <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 sm:p-5 shadow-md hover:shadow-lg border border-gray-200/50 dark:border-gray-800/50 backdrop-blur-sm transition-all duration-300">
               <div className="flex gap-4">
                 <img
                   src={user?.avatar}
@@ -185,41 +247,41 @@ const Feed = () => {
                 <div className="flex-1">
                   <div
                     onClick={() => setOpenPostModal(true)}
-                    className="w-full bg-gray-50 dark:bg-gray-800 rounded-2xl p-3 cursor-text hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors"
+                    className="w-full bg-gray-50 dark:bg-gray-800 rounded-2xl p-3.5 sm:p-4 cursor-text hover:bg-gradient-to-r hover:from-gray-100 hover:to-blue-50/50 dark:hover:from-gray-800 dark:hover:to-blue-900/10 transition-all duration-300 min-h-[44px] flex items-center"
                   >
-                    <p className="text-gray-500 dark:text-gray-400 font-medium">What's happening?</p>
+                    <p className="text-gray-500 dark:text-gray-400 font-medium text-sm sm:text-base">What's happening?</p>
                   </div>
 
                   {/* Quick Actions */}
-                  <div className="flex items-center justify-between mt-3 px-2">
-                    <div className="flex gap-4 text-blue-500">
+                  <div className="flex items-center justify-between mt-3 sm:mt-4 px-1">
+                    <div className="flex gap-2 sm:gap-3 text-blue-500">
                       <button
                         onClick={() => setOpenPostModal(true)}
-                        className="flex items-center gap-2 text-sm font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 px-2 py-1.5 rounded-lg transition"
+                        className="flex items-center gap-1.5 sm:gap-2 text-sm font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 px-2.5 sm:px-3 py-2 rounded-lg transition-all min-h-[44px] active:scale-95"
                       >
-                        <ImageIcon size={18} />
+                        <ImageIcon size={18} className="flex-shrink-0" />
                         <span className="hidden sm:inline">Media</span>
                       </button>
                       <button
                         onClick={() => setOpenPostModal(true)}
-                        className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 px-2 py-1.5 rounded-lg transition"
+                        className="flex items-center gap-1.5 sm:gap-2 text-sm font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 px-2.5 sm:px-3 py-2 rounded-lg transition-all min-h-[44px] active:scale-95"
                       >
-                        <Calendar size={18} />
+                        <Calendar size={18} className="flex-shrink-0" />
                         <span className="hidden sm:inline">Event</span>
                       </button>
                       <button
                         onClick={() => setOpenPostModal(true)}
-                        className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 px-2 py-1.5 rounded-lg transition"
+                        className="flex items-center gap-1.5 sm:gap-2 text-sm font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 px-2.5 sm:px-3 py-2 rounded-lg transition-all min-h-[44px] active:scale-95"
                       >
-                        <Smile size={18} />
+                        <Smile size={18} className="flex-shrink-0" />
                         <span className="hidden sm:inline">Feeling</span>
                       </button>
                     </div>
                     <button
                       onClick={() => setOpenPostModal(true)}
-                      className="bg-blue-600 hover:bg-blue-700 text-white rounded-full p-2 sm:px-4 sm:py-1.5 text-sm font-semibold shadow-md transition-all"
+                      className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-full min-w-[44px] min-h-[44px] p-2 sm:px-5 sm:py-2 text-sm font-semibold shadow-lg hover:shadow-xl transition-all duration-300 active:scale-95 flex items-center justify-center"
                     >
-                      <Send size={16} className="sm:hidden" />
+                      <Send size={18} className="sm:hidden" />
                       <span className="hidden sm:block">Post</span>
                     </button>
                   </div>
@@ -237,7 +299,7 @@ const Feed = () => {
             {posts.map((postItem) => (
               <div
                 key={postItem._id}
-                className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-md transition-shadow duration-300"
+                className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-2xl border border-gray-200/60 dark:border-gray-800/60 shadow-lg hover:shadow-2xl hover:border-blue-200/40 dark:hover:border-blue-800/40 transition-all duration-500 overflow-hidden"
               >
                 {/* Header */}
                 <div className="flex justify-between items-start p-4 sm:p-5 pb-0">
@@ -315,19 +377,23 @@ const Feed = () => {
                   </p>
 
                   {postItem.images && postItem.images.length > 0 && (
-                    <div className="mt-4 rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800">
+                    <div className="mt-4 rounded-xl overflow-hidden border border-gray-200/50 dark:border-gray-800/50 shadow-inner">
                       {postItem.images.length === 1 ? (
                         <img
                           src={postItem.images[0].url}
                           alt="post"
-                          onClick={() => setSelectedImage(postItem.images[0].url)}
-                          className="w-full max-h-[500px] object-cover cursor-pointer hover:opacity-95 transition"
+                          onClick={() => openFullscreenImage(postItem.images.map(img => img.url), 0)}
+                          className="w-full max-h-[500px] object-cover cursor-zoom-in hover:opacity-95 transition-all duration-300 active:scale-[0.99]"
                         />
                       ) : (
-                        <div className="aspect-video bg-black">
+                        <div className="aspect-video bg-gradient-to-br from-gray-900 to-black">
                           <ImageCarousel
                             images={postItem.images}
-                            onImageClick={(url) => setSelectedImage(url)}
+                            onImageClick={(url) => {
+                              const imageUrls = postItem.images.map(img => img.url);
+                              const index = imageUrls.indexOf(url);
+                              openFullscreenImage(imageUrls, index);
+                            }}
                           />
                         </div>
                       )}
@@ -336,22 +402,22 @@ const Feed = () => {
                 </div>
 
                 {/* Footer Actions */}
-                <div className="px-4 sm:px-5 py-3 border-t border-gray-100 dark:border-gray-800">
-                  <div className="flex items-center justify-between max-w-md">
+                <div className="px-4 sm:px-5 py-3.5 border-t border-gray-200/60 dark:border-gray-800/60 bg-gradient-to-b from-transparent to-gray-50/30 dark:to-gray-800/20">
+                  <div className="flex items-center justify-around sm:justify-between max-w-md gap-2">
                     {/* Like */}
                     <button
                       onClick={() => handleLike(postItem._id)}
-                      className="flex items-center gap-2 group focus:outline-none"
+                      className="flex items-center gap-1.5 sm:gap-2 group focus:outline-none min-h-[44px] px-2 sm:px-3 py-2 rounded-lg hover:bg-red-50/50 dark:hover:bg-red-900/10 transition-all active:scale-95"
                     >
-                      <div className={`p-2 rounded-full group-hover:bg-red-50 dark:group-hover:bg-red-900/20 transition-colors ${postItem.likedByCurrentUser ? "text-red-500" : "text-gray-500 dark:text-gray-400"
+                      <div className={`p-1.5 sm:p-2 rounded-full transition-all duration-300 ${postItem.likedByCurrentUser ? "text-red-500 bg-red-50 dark:bg-red-900/20" : "text-gray-500 dark:text-gray-400 group-hover:bg-red-100 dark:group-hover:bg-red-900/30"
                         }`}>
                         <Heart
                           size={20}
-                          className={`transition-transform duration-300 ${postItem.likedByCurrentUser ? "fill-current scale-110" : "group-hover:scale-110"
+                          className={`transition-all duration-300 ${postItem.likedByCurrentUser ? "fill-current scale-110 animate-pulse" : "group-hover:scale-125"
                             }`}
                         />
                       </div>
-                      <span className={`text-sm font-medium ${postItem.likedByCurrentUser ? "text-red-500" : "text-gray-500 dark:text-gray-400 group-hover:text-red-500"
+                      <span className={`text-sm font-semibold transition-colors ${postItem.likedByCurrentUser ? "text-red-500" : "text-gray-600 dark:text-gray-400 group-hover:text-red-500"
                         }`}>
                         {postItem.likesCount || 0}
                       </span>
@@ -360,19 +426,19 @@ const Feed = () => {
                     {/* Comment */}
                     <button
                       onClick={() => setActivePost(postItem)}
-                      className="flex items-center gap-2 group"
+                      className="flex items-center gap-1.5 sm:gap-2 group min-h-[44px] px-2 sm:px-3 py-2 rounded-lg hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-all active:scale-95"
                     >
-                      <div className="p-2 rounded-full text-gray-500 dark:text-gray-400 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20 group-hover:text-blue-500 transition-colors">
+                      <div className="p-1.5 sm:p-2 rounded-full text-gray-500 dark:text-gray-400 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/30 group-hover:text-blue-500 transition-all duration-300 group-hover:scale-110">
                         <MessageCircle size={20} />
                       </div>
-                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400 group-hover:text-blue-500">
+                      <span className="text-sm font-semibold text-gray-600 dark:text-gray-400 group-hover:text-blue-500 transition-colors">
                         {postItem.commentsCount || 0}
                       </span>
                     </button>
 
                     {/* Share */}
-                    <button className="flex items-center gap-2 group">
-                      <div className="p-2 rounded-full text-gray-500 dark:text-gray-400 group-hover:bg-green-50 dark:group-hover:bg-green-900/20 group-hover:text-green-500 transition-colors">
+                    <button className="flex items-center gap-1.5 sm:gap-2 group min-h-[44px] px-2 sm:px-3 py-2 rounded-lg hover:bg-green-50/50 dark:hover:bg-green-900/10 transition-all active:scale-95">
+                      <div className="p-1.5 sm:p-2 rounded-full text-gray-500 dark:text-gray-400 group-hover:bg-green-100 dark:group-hover:bg-green-900/30 group-hover:text-green-500 transition-all duration-300 group-hover:scale-110">
                         <Share2 size={20} />
                       </div>
                     </button>
@@ -408,25 +474,112 @@ const Feed = () => {
         />
       )}
 
-      {/* Fullscreen Image Viewer */}
+      {/* Premium Fullscreen Image Viewer */}
       {selectedImage && (
         <div
-          className="fixed inset-0 z-[60] flex justify-center items-center bg-black/90 backdrop-blur-sm transition-opacity p-4"
-          onClick={(e) => e.target === e.currentTarget && setSelectedImage(null)}
+          className="fixed inset-0 z-[60] flex justify-center items-center bg-black/95 backdrop-blur-md transition-all duration-300 animate-in fade-in"
+          onClick={(e) => e.target === e.currentTarget && closeFullscreenImage()}
         >
-          <div className="relative w-full h-full flex items-center justify-center">
-            <button
-              onClick={() => setSelectedImage(null)}
-              className="absolute top-4 right-4 z-50 p-3 rounded-full bg-gray-800/50 hover:bg-gray-700 text-white transition-colors"
-            >
-              <X size={24} />
-            </button>
+          {/* Top Control Bar */}
+          <div className="absolute top-0 left-0 right-0 p-3 sm:p-4 md:p-6 flex items-center justify-between bg-gradient-to-b from-black/60 to-transparent z-50">
+            <div className="flex items-center gap-2 sm:gap-3">
+              {allImages.length > 1 && (
+                <div className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-white/10 backdrop-blur-md text-white text-xs sm:text-sm font-semibold border border-white/20">
+                  {selectedImageIndex + 1} / {allImages.length}
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={downloadImage}
+                className="p-2.5 sm:p-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md text-white transition-all duration-300 hover:scale-110 active:scale-95 border border-white/20"
+                title="Download image"
+              >
+                <Download size={20} className="sm:w-6 sm:h-6" />
+              </button>
+              <button
+                onClick={closeFullscreenImage}
+                className="p-2.5 sm:p-3 rounded-full bg-white/10 hover:bg-red-500/80 backdrop-blur-md text-white transition-all duration-300 hover:scale-110 active:scale-95 border border-white/20"
+                title="Close (ESC)"
+              >
+                <X size={20} className="sm:w-6 sm:h-6" />
+              </button>
+            </div>
+          </div>
+
+          {/* Main Image Container */}
+          <div className="relative w-full h-full flex items-center justify-center p-4 sm:p-8 md:p-12">
             <img
               src={selectedImage}
-              alt="fullscreen"
-              className="max-w-full max-h-full object-contain rounded-md shadow-2xl"
+              alt="fullscreen preview"
+              className="max-w-full max-h-full object-contain rounded-lg shadow-2xl transition-transform duration-300 select-none"
+              style={{ transform: `scale(${zoomLevel})` }}
+              onDoubleClick={zoomLevel === 1 ? handleZoomIn : resetZoom}
             />
           </div>
+
+          {/* Navigation Arrows */}
+          {allImages.length > 1 && (
+            <>
+              <button
+                onClick={() => navigateImage('prev')}
+                className="absolute left-2 sm:left-4 md:left-6 top-1/2 -translate-y-1/2 p-3 sm:p-4 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md text-white transition-all duration-300 hover:scale-110 active:scale-95 border border-white/20 z-50"
+                title="Previous (←)"
+              >
+                <ChevronLeft size={24} className="sm:w-8 sm:h-8" />
+              </button>
+              <button
+                onClick={() => navigateImage('next')}
+                className="absolute right-2 sm:right-4 md:right-6 top-1/2 -translate-y-1/2 p-3 sm:p-4 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md text-white transition-all duration-300 hover:scale-110 active:scale-95 border border-white/20 z-50"
+                title="Next (→)"
+              >
+                <ChevronRight size={24} className="sm:w-8 sm:h-8" />
+              </button>
+            </>
+          )}
+
+          {/* Bottom Zoom Controls */}
+          <div className="absolute bottom-4 sm:bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 sm:gap-3 bg-white/10 backdrop-blur-md rounded-full p-2 sm:p-2.5 border border-white/20 z-50">
+            <button
+              onClick={handleZoomOut}
+              disabled={zoomLevel <= 0.5}
+              className="p-2 sm:p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all duration-300 hover:scale-110 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+              title="Zoom out"
+            >
+              <ZoomOut size={18} className="sm:w-5 sm:h-5" />
+            </button>
+
+            <div className="px-3 sm:px-4 text-white text-xs sm:text-sm font-semibold min-w-[60px] sm:min-w-[70px] text-center">
+              {Math.round(zoomLevel * 100)}%
+            </div>
+
+            <button
+              onClick={handleZoomIn}
+              disabled={zoomLevel >= 3}
+              className="p-2 sm:p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all duration-300 hover:scale-110 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+              title="Zoom in"
+            >
+              <ZoomIn size={18} className="sm:w-5 sm:h-5" />
+            </button>
+
+            {zoomLevel !== 1 && (
+              <button
+                onClick={resetZoom}
+                className="ml-1 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-full bg-blue-500/80 hover:bg-blue-600 text-white text-xs sm:text-sm font-medium transition-all duration-300 hover:scale-105 active:scale-95"
+                title="Reset zoom"
+              >
+                Reset
+              </button>
+            )}
+          </div>
+
+          {/* Mobile swipe hint */}
+          {allImages.length > 1 && (
+            <div className="absolute bottom-20 sm:bottom-24 left-1/2 -translate-x-1/2 text-white/60 text-xs sm:text-sm text-center md:hidden">
+              Swipe or use arrows to navigate
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -108,4 +108,15 @@ const deleteSearchHistoryItem = async (searchHistoryId) => {
     throw error;
   }
 }
-export { getUser, uploadAvatar, getUserProfile, followUser, getFollowers, searchUser, getFollowing, editProfile, addToSearchHistory, getSearchHistory, clearSearchHistory, deleteSearchHistoryItem };
+
+const saveToken = async (token) => {
+  try {
+    const res = await api.post(`/user/save-token`, {
+      token
+    });
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
+}
+export { getUser, uploadAvatar, getUserProfile, followUser, getFollowers, searchUser, getFollowing, editProfile, addToSearchHistory, getSearchHistory, clearSearchHistory, deleteSearchHistoryItem, saveToken };
