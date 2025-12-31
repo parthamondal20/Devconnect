@@ -5,7 +5,19 @@ import { clearUser } from "../features/authSlice";
 const api = axios.create({
   baseURL: import.meta.env.VITE_BACKEND_URL,
   withCredentials: true,
+  timeout: 10000, // 10 second timeout to detect slow network
 });
+
+// Global flag to track server status
+let serverDownDetected = false;
+
+export const setServerDownStatus = (status) => {
+  serverDownDetected = status;
+  // Dispatch custom event for components to listen to
+  window.dispatchEvent(new CustomEvent('serverStatusChange', { detail: { isDown: status } }));
+};
+
+export const getServerDownStatus = () => serverDownDetected;
 
 let isRefreshing = false;
 let failedQueue = [];
@@ -17,9 +29,37 @@ const processQueue = (error) => {
 };
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Server is responding, mark it as up
+    setServerDownStatus(false);
+    return response;
+  },
   async (error) => {
     const originalRequest = error.config;
+
+    // ✅ Detect server downtime (not slow network)
+    // Server is down if:
+    // 1. No response from server (network error)
+    // 2. ERR_NETWORK or ERR_CONNECTION_REFUSED
+    // 3. No error.response object (means request never reached server)
+    const isNetworkError = error.code === 'ERR_NETWORK' ||
+      error.code === 'ERR_CONNECTION_REFUSED' ||
+      error.message === 'Network Error' ||
+      !error.response;
+
+    // If it's a timeout but we got a response, it's slow network, not server down
+    const isTimeout = error.code === 'ECONNABORTED';
+
+    if (isNetworkError && !isTimeout) {
+      console.error('Server is down - network error detected:', error.code || error.message);
+      setServerDownStatus(true);
+      return Promise.reject(error);
+    }
+
+    // If we got any response, server is up (even if it's an error response)
+    if (error.response) {
+      setServerDownStatus(false);
+    }
 
     // ✅ Check for refresh token endpoint explicitly
     const isRefreshTokenEndpoint = originalRequest.url?.includes('/auth/refresh-token');
