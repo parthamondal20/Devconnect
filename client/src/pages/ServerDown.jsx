@@ -69,13 +69,6 @@ const ServerDown = () => {
                 </div>
 
                 {/* Additional Info */}
-                <div className="mt-12 p-6 bg-blue-500/10 border border-blue-500/30 rounded-xl">
-                    <p className="text-blue-400 text-sm">
-                        💡 <strong>Note:</strong> This message appears only when the server is completely unreachable,
-                        not during slow network conditions.
-                    </p>
-                </div>
-
                 {/* Decorative Elements */}
                 <div className="absolute top-0 right-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl -z-10"></div>
                 <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl -z-10"></div>
