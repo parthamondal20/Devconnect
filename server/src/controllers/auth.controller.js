@@ -24,10 +24,22 @@ export const githubCallback = (req, res, next) => {
           maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
           sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         };
+
+        // Check if mobile device
+        const userAgent = req.headers['user-agent'] || '';
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(userAgent);
+
         res
           .cookie("accessToken", accessToken, options)
-          .cookie("refreshToken", refreshToken, options)
-          .send(`<script>window.close()</script>`);
+          .cookie("refreshToken", refreshToken, options);
+
+        if (isMobile) {
+          // Mobile: redirect to success page
+          res.redirect(`${clientUrl}/github-success`);
+        } else {
+          // Desktop: close popup window
+          res.send(`<script>window.close()</script>`);
+        }
       } catch (error) {
         console.error("Token generation failed:", error);
         res.redirect(`${clientUrl}/signin`);
@@ -57,10 +69,22 @@ export const googleCallback = (req, res, next) => {
           maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
           sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         };
+
+        // Check if mobile device
+        const userAgent = req.headers['user-agent'] || '';
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(userAgent);
+
         res
           .cookie("accessToken", accessToken, options)
-          .cookie("refreshToken", refreshToken, options)
-          .send(`<script>window.close()</script>`);
+          .cookie("refreshToken", refreshToken, options);
+
+        if (isMobile) {
+          // Mobile: redirect to success page
+          res.redirect(`${clientUrl}/github-success`);
+        } else {
+          // Desktop: close popup window
+          res.send(`<script>window.close()</script>`);
+        }
 
       } catch (error) {
         console.error("Token generation failed:", error);
