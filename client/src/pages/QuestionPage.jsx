@@ -6,6 +6,7 @@ import DevChatbot from "../components/DevChatbot";
 import ConfirmModal from "../components/ConfirmModal";
 import { toast } from "react-hot-toast";
 import { useSelector } from "react-redux";
+import PageLoader from "../components/PageLoader";
 
 export default function QuestionsPage() {
     const [questions, setQuestions] = useState([]);
@@ -15,19 +16,22 @@ export default function QuestionsPage() {
     const [showQuestionForm, setShowQuestionForm] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [questionToDelete, setQuestionToDelete] = useState(null);
-
+    const [loading, setLoading] = useState(false);
     // Get logged-in user from Redux
     const { user } = useSelector((state) => state.auth);
 
     // Fetch all questions on page load
     useEffect(() => {
         const fetchQuestions = async () => {
+            setLoading(true);
             try {
                 const data = await getAllQuestions();
                 setQuestions(data);
             } catch (err) {
                 console.error(err);
                 showError("Failed to load questions");
+            } finally {
+                setLoading(false);
             }
         };
         fetchQuestions();
@@ -112,6 +116,9 @@ export default function QuestionsPage() {
         }
     };
 
+    if (loading) {
+        return <PageLoader loading={loading} />;
+    }
     return (
         <>
             <ConfirmModal

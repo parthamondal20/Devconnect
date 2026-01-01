@@ -13,6 +13,7 @@ import SignUp from './pages/SignUp.jsx';
 import SignIn from './pages/SignIn.jsx';
 import GitHubSuccess from './pages/GitHubSuccess.jsx';
 import Loader from './components/Loader.jsx'
+import ProtectedRoute from './components/ProtectedRoute.jsx';
 import store from './app/store.js'
 const Feed = lazy(() => import("./pages/Feed.jsx"));
 const Profile = lazy(() => import("./pages/Profile.jsx"));
@@ -32,17 +33,19 @@ const router = createBrowserRouter(
       <Route path='/signup' element={<SignUp />} />
       <Route path='/signin' element={<SignIn />} />
       <Route path='/github-success' element={<GitHubSuccess />} />
-      <Route path='/feed' element={<Feed />} />
-      <Route path='/community' element={<Community />} />
-      <Route path='/profile/:user_id' element={<Profile />} />
-      <Route path='/community/:community_id' element={<CommunityChatPage />} />
-      <Route path='/jobs' element={<Jobs />} />
-      <Route path='/chat/:conversation_id' element={<ChatPage />} />
-      <Route path='/projects/:githubId' element={<ProjectPage />} />
       <Route path='/verify-otp' element={<OTPpage />} />
-      <Route path='/questions' element={<QuestionsPage />} />
-      <Route path='/messages' element={<MessagePage />} />
-      <Route path='/notifications' element={<NotificationPage />} />
+
+      {/* Protected Routes */}
+      <Route path='/feed' element={<ProtectedRoute><Feed /></ProtectedRoute>} />
+      <Route path='/community' element={<ProtectedRoute><Community /></ProtectedRoute>} />
+      <Route path='/profile/:user_id' element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+      <Route path='/community/:community_id' element={<ProtectedRoute><CommunityChatPage /></ProtectedRoute>} />
+      <Route path='/jobs' element={<ProtectedRoute><Jobs /></ProtectedRoute>} />
+      <Route path='/chat/:conversation_id' element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
+      <Route path='/projects/:githubId' element={<ProtectedRoute><ProjectPage /></ProtectedRoute>} />
+      <Route path='/questions' element={<ProtectedRoute><QuestionsPage /></ProtectedRoute>} />
+      <Route path='/messages' element={<ProtectedRoute><MessagePage /></ProtectedRoute>} />
+      <Route path='/notifications' element={<ProtectedRoute><NotificationPage /></ProtectedRoute>} />
     </Route>
   )
 )

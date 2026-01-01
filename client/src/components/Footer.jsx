@@ -18,7 +18,7 @@ const Footer = () => {
                 {/* Right Section: Social Links */}
                 <div className="flex items-center gap-4">
                     <a
-                        href="https://github.com/"
+                        href="https://github.com/parthamondal20/Devconnect"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-1 hover:text-blue-500 transition"
@@ -26,20 +26,12 @@ const Footer = () => {
                         <Github size={18} /> GitHub
                     </a>
                     <a
-                        href="https://linkedin.com/"
+                        href="https://www.linkedin.com/in/partha-mondal-b29009254/"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-1 hover:text-blue-400 transition"
                     >
                         <Linkedin size={18} /> LinkedIn
-                    </a>
-                    <a
-                        href="https://twitter.com/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 hover:text-blue-300 transition"
-                    >
-                        <X size={18} /> Twitter
                     </a>
                 </div>
             </div>

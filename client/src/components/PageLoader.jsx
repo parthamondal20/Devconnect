@@ -1,8 +1,5 @@
 const PageLoader = ({ loading }) => {
   if (!loading) return null;
-
-  const colors = ["#EF4444", "#F59E0B", "#10B981", "#3B82F6", "#8B5CF6"]; // red, orange, green, blue, purple
-
   return (
     <div className="w-full h-screen flex items-center justify-center">
       <div className="loader w-[50px] aspect-square relative">

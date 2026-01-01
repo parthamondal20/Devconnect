@@ -164,6 +164,14 @@ const Feed = () => {
     }
   }, [post, dispatch]);
 
+  // ✅ Redirect to home if user state is cleared (session expired)
+  useEffect(() => {
+    if (!user) {
+      console.log("User state is null, redirecting to home...");
+      navigate("/", { replace: true });
+    }
+  }, [user, navigate]);
+
   useEffect(() => {
     const fetchPosts = async () => {
       try {
@@ -382,8 +390,9 @@ const Feed = () => {
                         <img
                           src={postItem.images[0].url}
                           alt="post"
+                          loading="lazy"
                           onClick={() => openFullscreenImage(postItem.images.map(img => img.url), 0)}
-                          className="w-full max-h-[500px] object-cover cursor-zoom-in hover:opacity-95 transition-all duration-300 active:scale-[0.99]"
+                          className="w-full max-h-[500px] object-cover cursor-pointer hover:opacity-95 transition-all duration-300 active:scale-[0.99]"
                         />
                       ) : (
                         <div className="aspect-video bg-gradient-to-br from-gray-900 to-black">

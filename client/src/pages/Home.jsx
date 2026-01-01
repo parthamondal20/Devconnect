@@ -22,7 +22,7 @@ const Home = () => {
             </h1>
             <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-2xl mb-8">
                 A social platform where developers connect, share projects, and
-                collaborate on innovative ideas 🚀
+                collaborate on innovative ideas 🚀 created by <b>Partha Mondal</b>
             </p>
 
             {/* CTA Buttons */}

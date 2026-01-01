@@ -94,18 +94,48 @@ api.interceptors.response.use(
         processQueue(err);
 
         // ✅ Log out user when refresh fails
+        console.error("Refresh token failed. Logging out...", err);
+
+        // Show user-friendly message
+        const isExpired = err.response?.data?.message?.includes("expired");
+        const message = isExpired
+          ? "Your session has expired. Please login again."
+          : "Authentication failed. Please login again.";
+
+        // Use dynamic import to avoid circular dependency
+        import('react-hot-toast').then(({ toast }) => {
+          toast.error(message, { duration: 4000 });
+        });
+
+        // Clear all auth data
         store.dispatch(clearUser());
         localStorage.removeItem("appStore");
-        window.location.href = "/";
+
+        // Small delay to ensure state is cleared before redirect
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 100);
 
         return Promise.reject(err);
       }
     }
     // ✅ Handle refresh token errors (401 from /auth/refresh-token)
     if (error.response?.status === 401 && isRefreshTokenEndpoint) {
+      console.error("Direct refresh token call failed:", error.response?.data?.message);
+
+      // Show user-friendly message
+      import('react-hot-toast').then(({ toast }) => {
+        toast.error("Your session has expired. Please login again.", { duration: 4000 });
+      });
+
       store.dispatch(clearUser());
       localStorage.removeItem("appStore");
-      window.location.href = "/";
+
+      // Small delay to ensure state is cleared
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 100);
+
       return Promise.reject(error);
     }
 
