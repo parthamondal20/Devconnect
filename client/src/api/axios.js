@@ -5,7 +5,7 @@ import { clearUser } from "../features/authSlice";
 const api = axios.create({
   baseURL: import.meta.env.VITE_BACKEND_URL,
   withCredentials: true,
-  timeout: 10000, // 10 second timeout to detect slow network
+  timeout: 50000, // 10 second timeout to detect slow network
 });
 
 // Global flag to track server status
