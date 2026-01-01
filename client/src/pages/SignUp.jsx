@@ -50,39 +50,45 @@ const SignUp = () => {
     }, [user, navigate]);
 
     const handleOAuthLogin = (provider) => {
-        setLoading(true);
+        // For mobile, use full-page redirect instead of popup
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-        const width = 600;
-        const height = 700;
-        const left = window.screen.width / 2 - width / 2;
-        const top = window.screen.height / 2 - height / 2;
+        if (isMobile) {
+            // Mobile: full-page redirect
+            window.location.href = `${serverURL}/auth/${provider}`;
+        } else {
+            // Desktop: popup window
+            setLoading(true);
+            const width = 600;
+            const height = 700;
+            const left = window.screen.width / 2 - width / 2;
+            const top = window.screen.height / 2 - height / 2;
 
-        const popup = window.open(
-            `${serverURL}/auth/${provider}`,
-            "_blank",
-            `width=${width},height=${height},top=${top},left=${left}`
-        );
+            const popup = window.open(
+                `${serverURL}/auth/${provider}`,
+                "_blank",
+                `width=${width},height=${height},top=${top},left=${left}`
+            );
 
-        // Poll for popup close
-        const popupTick = setInterval(async () => {
-            if (popup.closed) {
-                clearInterval(popupTick);
-
-                try {
-                    const data = await getUser();
-                    dispatch(setUser(data));
-                    showSuccess("Logged in successfully");
-                    navigate("/feed", { replace: true });
-                } catch (err) {
-                    console.log(err);
-                    showError(err?.response?.message || "Login failed. Please try again.");
-                } finally {
-                    setLoading(false);
+            // Poll for popup close
+            const popupTick = setInterval(async () => {
+                if (popup.closed) {
+                    clearInterval(popupTick);
+                    try {
+                        const data = await getUser();
+                        dispatch(setUser(data));
+                        showSuccess("Logged in successfully");
+                        navigate("/feed", { replace: true });
+                    } catch (err) {
+                        console.log(err);
+                        showError(err?.response?.message || "Login failed. Please try again.");
+                    } finally {
+                        setLoading(false);
+                    }
                 }
-            }
-        }, 500);
+            }, 500);
+        }
     };
-
 
 
     if (loading) {
