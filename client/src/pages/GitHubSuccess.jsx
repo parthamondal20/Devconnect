@@ -5,6 +5,7 @@ import { setUser } from "../features/authSlice";
 import { useDispatch } from "react-redux";
 import { getUser } from "../services/user";
 import { showError, showSuccess } from "../utils/toast";
+import toast from "react-hot-toast";
 const GitHubSuccess = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -22,11 +23,11 @@ const GitHubSuccess = () => {
                 dispatch(setUser(data));
                 setMessage(`signing in ${data.email}`);
                 await new Promise((resolve) => setTimeout(resolve, 2000));
-                showSuccess("Logged in successfully");
+                toast.success("Logged in successfully");
                 navigate("/feed", { replace: true });
             } catch (error) {
                 console.log(error);
-                showError("Failed to fetch user data.");
+                toast.error("Failed to fetch user data.");
             } finally {
                 setLoading(false);
             }

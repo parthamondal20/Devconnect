@@ -13,8 +13,10 @@ import { useNotifications } from '../context/NotificationContext';
 import { useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { setChatPartner } from '../features/chatSlice';
+import CommentModal from '../components/CommentModal';
 const NotificationPage = () => {
     const [filter, setFilter] = useState('all'); // all, unread, read
+    const [selectedPost, setSelectedPost] = useState(null); // For CommentModal
     const {
         notifications,
         unreadCount,
@@ -65,17 +67,30 @@ const NotificationPage = () => {
         return `${days} day${days > 1 ? 's' : ''} ago`;
     };
 
-    // Get notification link
-    const getNotificationLink = (notification) => {
-        if (notification.type === 'message' && notification.metaData?.conversationId) {
-            console.log("its coming here");
-            console.log(notification.sender);
-            dispatch(setChatPartner(notification.sender));
-            return `/chat/${notification.metaData.conversationId}`;
+    // Handle notification click
+    const handleNotificationClick = (notification) => {
+        // Mark as read if unread
+        if (!notification.isRead) {
+            markNotificationAsRead(notification._id);
         }
-        if (notification.metaData?.postId) return `/feed`;
-        if (notification.type === 'follow') return `/profile/${notification.sender._id}`;
-        return '/feed';
+
+        // Handle different notification types
+        if (notification.type === 'message' && notification.metaData?.conversationId) {
+            dispatch(setChatPartner(notification.sender));
+            navigate(`/chat/${notification.metaData.conversationId}`);
+        } else if (notification.type === 'like' && notification.metaData?.post) {
+            // Show CommentModal for like notifications
+            setSelectedPost(notification.metaData.post);
+        } else if (notification.type === 'comment' && notification.metaData?.post) {
+            // Show CommentModal for comment notifications
+            setSelectedPost(notification.metaData.post);
+        } else if (notification.type === 'follow') {
+            navigate(`/profile/${notification.sender._id}`);
+        } else if (notification.metaData?.postId) {
+            navigate(`/feed`);
+        } else {
+            navigate('/feed');
+        }
     };
 
     const readCount = notifications.filter(n => n.isRead).length;
@@ -186,10 +201,7 @@ const NotificationPage = () => {
                                         ? 'border-gray-100 dark:border-gray-800'
                                         : 'border-blue-200 dark:border-blue-800 bg-blue-50/30 dark:bg-blue-900/10'
                                         }`}
-                                    onClick={() => {
-                                        !notification.isRead && markNotificationAsRead(notification._id);
-                                        navigate(getNotificationLink(notification));
-                                    }}
+                                    onClick={() => handleNotificationClick(notification)}
                                 >
                                     <div className="flex gap-4">
                                         {/* User Avatar */}
@@ -291,6 +303,14 @@ const NotificationPage = () => {
                     </div>
                 )}
             </div>
+
+            {/* Comment Modal */}
+            {selectedPost && (
+                <CommentModal
+                    post={selectedPost}
+                    onClose={() => setSelectedPost(null)}
+                />
+            )}
         </div>
     );
 };

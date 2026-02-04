@@ -1,4 +1,4 @@
-import { getUserSocker } from "./sockerUserMap.js";
+import { getUserSocker, getAllConnectedUsers } from "./sockerUserMap.js";
 import Notification from "../models/notification.model.js";
 import redis from "../config/redis.js";
 const sendNotification = async (senderId, receiverId, type, message, metadata = {}) => {
@@ -27,7 +27,7 @@ const sendNotification = async (senderId, receiverId, type, message, metadata = 
                 isDelivered: true
             })
         } else {
-            console.log("user is offline");
+            // User offline, save to Redis for later delivery
             await redis.lpush(`notification:pending:${receiverId}`, JSON.stringify(notification));
         }
         return notification;

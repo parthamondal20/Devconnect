@@ -85,13 +85,15 @@ export default function ImageCarousel({ images = [], onImageClick, className = "
                 {images.map((img, i) => (
                     <div
                         key={img.publicId || img.url || i}
-                        className="relative flex-shrink-0 w-full h-full snap-center flex items-center justify-center bg-black/5"
+                        className="relative flex-shrink-0 w-full snap-center flex items-center justify-center bg-gray-50 dark:bg-gray-800/30"
+                        style={{ maxHeight: '500px', minHeight: '300px' }}
                         onClick={() => onImageClick && onImageClick(img.url)}
                     >
                         <img
                             src={img.url}
                             alt={`Slide ${i + 1}`}
-                            className="w-full h-full object-cover max-h-[600px] cursor-pointer select-none"
+                            className="w-full h-full object-contain cursor-pointer select-none"
+                            style={{ maxHeight: '500px' }}
                             draggable={false}
                             loading={i === 0 ? "eager" : "lazy"}
                         />
@@ -133,8 +135,8 @@ export default function ImageCarousel({ images = [], onImageClick, className = "
                                     scrollToIndex(i);
                                 }}
                                 className={`h-2 rounded-full transition-all duration-300 shadow-sm ${i === index
-                                        ? "w-6 bg-white"
-                                        : "w-2 bg-white/50 hover:bg-white/80"
+                                    ? "w-6 bg-white"
+                                    : "w-2 bg-white/50 hover:bg-white/80"
                                     }`}
                                 aria-label={`Go to slide ${i + 1}`}
                                 aria-current={i === index ? "true" : "false"}

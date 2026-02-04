@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import socket from '../api/socket';
+import socket, { connectSocket } from '../api/socket';
 import * as notificationService from '../services/notification';
 import toast from 'react-hot-toast';
 const NotificationContext = createContext();
@@ -18,6 +18,21 @@ export const NotificationProvider = ({ children }) => {
     const [unreadCount, setUnreadCount] = useState(0);
     const [loading, setLoading] = useState(false);
     const { user } = useSelector(state => state.auth);
+
+    // Initialize socket connection when user is available
+    useEffect(() => {
+        if (user?._id) {
+            console.log("🔌 Connecting socket for user:", user._id);
+            connectSocket(user._id);
+
+            return () => {
+                console.log("🔌 Disconnecting socket for user:", user._id);
+                if (socket.connected) {
+                    socket.disconnect();
+                }
+            };
+        }
+    }, [user?._id]);
 
     // Fetch notifications on mount
     useEffect(() => {

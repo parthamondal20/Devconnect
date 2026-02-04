@@ -12,8 +12,13 @@ const setUserSocker = (userId, socketId) => {
     socketUserMap.set(userId, socketId);
 }
 
+const getAllConnectedUsers = () => {
+    return Array.from(socketUserMap.keys());
+}
+
 export {
     getUserSocker,
     removeUserSocker,
-    setUserSocker
+    setUserSocker,
+    getAllConnectedUsers
 };

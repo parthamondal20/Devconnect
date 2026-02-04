@@ -26,6 +26,7 @@ const CommunityChatPage = lazy(() => import("./pages/CommunityChatPage.jsx"));
 const ChatPage = lazy(() => import("./pages/ChatPage.jsx"));
 const MessagePage = lazy(() => import("./pages/MessagePage.jsx"));
 const NotificationPage = lazy(() => import("./pages/Notifications.jsx"));
+const PostPage = lazy(() => import("./pages/PostPage.jsx"));
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path='' element={<Layout />}>
@@ -46,6 +47,7 @@ const router = createBrowserRouter(
       <Route path='/questions' element={<ProtectedRoute><QuestionsPage /></ProtectedRoute>} />
       <Route path='/messages' element={<ProtectedRoute><MessagePage /></ProtectedRoute>} />
       <Route path='/notifications' element={<ProtectedRoute><NotificationPage /></ProtectedRoute>} />
+      <Route path='post/:post_id' element={<ProtectedRoute><PostPage /></ProtectedRoute>} />
     </Route>
   )
 )

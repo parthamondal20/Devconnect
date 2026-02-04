@@ -48,7 +48,7 @@ const timeAgo = (date) => {
   return "Just now";
 };
 
-const Feed = () => {
+const Feed = ({ indivisual_post }) => {
   const [posts, setPosts] = useState([]);
   const { user } = useSelector((state) => state.auth);
   const { post } = useSelector((state) => state.post);
@@ -70,6 +70,7 @@ const Feed = () => {
   const [postloading, setPostLoading] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [postToDelete, setPostToDelete] = useState(null);
+  const clientURL = import.meta.env.VITE_CLIENT_URL;
   // Placeholder for missing handleFollow function
   const handleFollow = async (userId) => {
     toast.success("Follow feature coming soon!");
@@ -173,6 +174,10 @@ const Feed = () => {
   }, [user, navigate]);
 
   useEffect(() => {
+    if (indivisual_post) {
+      setPosts([indivisual_post]);
+      return;
+    }
     const fetchPosts = async () => {
       try {
         setLoading(true);
@@ -230,6 +235,22 @@ const Feed = () => {
     };
   }, [selectedImage, allImages, selectedImageIndex]);
 
+  const handleShare = async (postItem) => {
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: "DevConnect",
+          text: postItem.about,
+          url: `${clientURL}/post/${postItem._id}`,
+        })
+      } else {
+        toast.error("Share feature not supported on this device");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   if (loading) {
     return <PageLoader loading={loading} />
   }
@@ -244,7 +265,7 @@ const Feed = () => {
           <div className="w-full max-w-2xl mx-auto space-y-6">
 
             {/* Create Post Card */}
-            <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 sm:p-5 shadow-md hover:shadow-lg border border-gray-200/50 dark:border-gray-800/50 backdrop-blur-sm transition-all duration-300">
+            {!indivisual_post && <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 sm:p-5 shadow-md hover:shadow-lg border border-gray-200/50 dark:border-gray-800/50 backdrop-blur-sm transition-all duration-300">
               <div className="flex gap-4">
                 <img
                   src={user?.avatar}
@@ -295,7 +316,7 @@ const Feed = () => {
                   </div>
                 </div>
               </div>
-            </div>
+            </div>}
 
             <PostModal
               isOpen={openPostModal}
@@ -387,15 +408,18 @@ const Feed = () => {
                   {postItem.images && postItem.images.length > 0 && (
                     <div className="mt-4 rounded-xl overflow-hidden border border-gray-200/50 dark:border-gray-800/50 shadow-inner">
                       {postItem.images.length === 1 ? (
-                        <img
-                          src={postItem.images[0].url}
-                          alt="post"
-                          loading="lazy"
-                          onClick={() => openFullscreenImage(postItem.images.map(img => img.url), 0)}
-                          className="w-full max-h-[500px] object-cover cursor-pointer hover:opacity-95 transition-all duration-300 active:scale-[0.99]"
-                        />
+                        <div className="w-full bg-gray-50 dark:bg-gray-900/90 flex items-center justify-center" style={{ minHeight: '300px', maxHeight: '500px' }}>
+                          <img
+                            src={postItem.images[0].url}
+                            alt="post"
+                            loading="lazy"
+                            onClick={() => openFullscreenImage(postItem.images.map(img => img.url), 0)}
+                            className="w-full h-full object-contain cursor-pointer hover:opacity-95 transition-all duration-300"
+                            style={{ maxHeight: '500px' }}
+                          />
+                        </div>
                       ) : (
-                        <div className="aspect-video bg-gradient-to-br from-gray-900 to-black">
+                        <div className="aspect-video bg-gray-50 dark:bg-gray-800/30">
                           <ImageCarousel
                             images={postItem.images}
                             onImageClick={(url) => {
@@ -418,11 +442,11 @@ const Feed = () => {
                       onClick={() => handleLike(postItem._id)}
                       className="flex items-center gap-1.5 sm:gap-2 group focus:outline-none min-h-[44px] px-2 sm:px-3 py-2 rounded-lg hover:bg-red-50/50 dark:hover:bg-red-900/10 transition-all active:scale-95"
                     >
-                      <div className={`p-1.5 sm:p-2 rounded-full transition-all duration-300 ${postItem.likedByCurrentUser ? "text-red-500 bg-red-50 dark:bg-red-900/20" : "text-gray-500 dark:text-gray-400 group-hover:bg-red-100 dark:group-hover:bg-red-900/30"
+                      <div className={` transition-all duration-300 ${postItem.likedByCurrentUser ? "text-red-500 bg-red-50 dark:bg-red-900/20" : "text-gray-500 dark:text-gray-400 group-hover:bg-red-100 dark:group-hover:bg-red-900/30"
                         }`}>
                         <Heart
                           size={20}
-                          className={`transition-all duration-300 ${postItem.likedByCurrentUser ? "fill-current scale-110 animate-pulse" : "group-hover:scale-125"
+                          className={`transition-all duration-300 ${postItem.likedByCurrentUser ? "fill-current scale-110" : "group-hover:scale-125"
                             }`}
                         />
                       </div>
@@ -446,7 +470,10 @@ const Feed = () => {
                     </button>
 
                     {/* Share */}
-                    <button className="flex items-center gap-1.5 sm:gap-2 group min-h-[44px] px-2 sm:px-3 py-2 rounded-lg hover:bg-green-50/50 dark:hover:bg-green-900/10 transition-all active:scale-95">
+                    <button
+                      onClick={() => handleShare(postItem)}
+                      className="flex items-center gap-1.5 sm:gap-2 group min-h-[44px] px-2 sm:px-3 py-2 rounded-lg hover:bg-green-50/50 dark:hover:bg-green-900/10 transition-all active:scale-95"
+                    >
                       <div className="p-1.5 sm:p-2 rounded-full text-gray-500 dark:text-gray-400 group-hover:bg-green-100 dark:group-hover:bg-green-900/30 group-hover:text-green-500 transition-all duration-300 group-hover:scale-110">
                         <Share2 size={20} />
                       </div>
@@ -456,15 +483,6 @@ const Feed = () => {
               </div>
             ))}
           </div>
-
-          {/* Right Column - Suggestions */}
-          <div className="hidden lg:block sticky top-24 h-fit space-y-6">
-            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-4 shadow-sm">
-              <h3 className="font-bold text-gray-900 dark:text-white mb-4">Who to follow</h3>
-              <div className="text-sm text-gray-500">Suggestions feature coming soon...</div>
-            </div>
-          </div>
-
         </div>
       </div>
 

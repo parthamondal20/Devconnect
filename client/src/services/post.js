@@ -9,7 +9,14 @@ const getPosts = async () => {
     throw error;
   }
 };
-
+const getPostById = async (postId) => {
+  try {
+    const res = await api.get(`/post/${postId}`);
+    return res.data.data;
+  } catch (error) {
+    throw error;
+  }
+}
 const createPost = async (formdata) => {
   try {
     const res = await api.post("/post/create", formdata, {
@@ -31,4 +38,4 @@ const deletePost = async (postId) => {
     throw error;
   }
 }
-export { createPost, getPosts, deletePost };
+export { createPost, getPosts, deletePost, getPostById };

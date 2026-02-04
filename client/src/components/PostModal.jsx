@@ -19,6 +19,7 @@ import { setPost, clearPost } from "../features/postSlice";
 import { showError, showSuccess } from "../utils/toast";
 import { createPost } from "../services/post";
 import EmojiPickerComponent from "./EmojiPickerComponent";
+import toast from "react-hot-toast";
 
 // -------------------------
 
@@ -88,7 +89,7 @@ const PostModal = ({ isOpen = true, onClose, user }) => {
       const newPost = await createPost(formData);
 
       dispatch(setPost(newPost));
-      showSuccess("Post created successfully");
+      toast.success("Posted successfully!");
       // Reset state
       setSelectedImages([]);
       setText("");
@@ -157,13 +158,15 @@ const PostModal = ({ isOpen = true, onClose, user }) => {
               {selectedImages.map((img, index) => (
                 <div
                   key={index}
-                  className={`relative group bg-gray-100 dark:bg-gray-900 ${selectedImages.length === 3 && index === 0 ? 'row-span-2 h-full' : 'aspect-[4/3]'
+                  className={`relative group bg-gray-100 dark:bg-gray-900 rounded-xl overflow-hidden flex items-center justify-center ${selectedImages.length === 1 ? 'min-h-[300px] max-h-[500px]' :
+                    selectedImages.length === 3 && index === 0 ? 'row-span-2 min-h-[400px]' :
+                      'min-h-[200px] max-h-[300px]'
                     }`}
                 >
                   <img
                     src={img.preview}
                     alt={`preview-${index}`}
-                    className="w-full h-full object-cover cursor-zoom-in transition-transform duration-500 group-hover:scale-105"
+                    className="w-full h-full object-contain cursor-zoom-in transition-transform duration-500 group-hover:scale-105"
                     onClick={() => setPreviewIndex(index)}
                   />
 

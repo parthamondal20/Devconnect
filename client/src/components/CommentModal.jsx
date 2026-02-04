@@ -5,6 +5,7 @@ import CommentLoader from "./CommentLoader";
 import InstagramLoader from "./InstagramLoader";
 import { showError, showSuccess } from "../utils/toast";
 import { useSelector } from "react-redux";
+import ImageCarousel from "./ImageCarousel";
 const CommentModal = ({ post, onClose }) => {
     const [commentText, setCommentText] = useState("");
     const [comments, setComments] = useState([]);
@@ -15,7 +16,7 @@ const CommentModal = ({ post, onClose }) => {
     const [replyingTo, setReplyingTo] = useState(null);
     const [showReplies, setShowReplies] = useState(new Set());
     const { user } = useSelector(state => state.auth);
-
+    console.log("post is ", post);
     // Prevent body scroll when modal is open
     useEffect(() => {
         // Save original overflow style
@@ -156,11 +157,7 @@ const CommentModal = ({ post, onClose }) => {
 
                     {/* Left: Post Image - Hidden on mobile */}
                     <div className="max-md:hidden md:w-1/2 bg-black flex items-center justify-center p-4 md:p-6">
-                        <img
-                            src={post.images[0]?.url}
-                            alt="post"
-                            className="object-contain max-h-full max-w-full rounded-lg"
-                        />
+                        <ImageCarousel images={post.images} />
                     </div>
 
                     {/* Right: Comments Section */}

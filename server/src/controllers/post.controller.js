@@ -49,6 +49,19 @@ const getPosts = asyncHandler(async (req, res) => {
 
   return res.status(200).json(new ApiResponse(200, "All post is here", posts));
 });
+
+const getPostById = asyncHandler(async (req, res) => {
+  const { post_id } = req.params;
+  const post = await Post.findById(post_id).populate("user", "username avatar email");
+  // Redis stores user IDs as strings, so convert ObjectId to string for lookup
+  const userIdStr = String(req.user._id);
+  const liked = await redis.sismember(`post:${post_id}:likes`, userIdStr);
+  // Convert Mongoose document to plain object so we can add custom properties
+  const postObj = post.toObject();
+  postObj.likedByCurrentUser = Boolean(liked);
+  return res.status(200).json(new ApiResponse(200, "Post is here", postObj));
+})
+
 const deletePost = asyncHandler(async (req, res) => {
   const { post_id } = req.params;
   await Post.findByIdAndDelete(post_id);
@@ -56,4 +69,4 @@ const deletePost = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, "Successfully deleted post"));
 });
-export { createPost, getPosts, deletePost };
+export { createPost, getPosts, deletePost, getPostById };

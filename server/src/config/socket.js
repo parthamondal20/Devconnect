@@ -19,7 +19,6 @@ export default function initSocket(httpServer) {
         await sendPendingNotifications(userId, socket);
 
         if (userId && userId !== 'null' && userId !== 'undefined') {
-            console.log("user id is ", userId);
             setUserSocker(userId, socket.id);
         }
 

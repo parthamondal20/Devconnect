@@ -9,7 +9,7 @@ import { sendMessageNotification } from "../utils/sendMessageNotification.js";
 import User from "../models/user.model.js";
 const likePost = asyncHandler(async (req, res) => {
   const { post_id } = req.params;
-  const post = await Post.findById(post_id);
+  const post = await Post.findById(post_id).populate("user");
   if (!post) {
     throw new ApiError(404, "Post not found");
   }
@@ -41,7 +41,7 @@ const likePost = asyncHandler(async (req, res) => {
           liker.username,
           post_id,
           `${liker.username} liked your post`,
-          post.user
+          post
         );
       }
     } catch (notifError) {

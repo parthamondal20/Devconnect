@@ -5,7 +5,6 @@ import { clearUser } from "../features/authSlice";
 const api = axios.create({
   baseURL: import.meta.env.VITE_BACKEND_URL,
   withCredentials: true,
-  timeout: 50000, // 10 second timeout to detect slow network
 });
 
 // Global flag to track server status
@@ -120,18 +119,35 @@ api.interceptors.response.use(
       }
     }
     // ✅ Handle refresh token errors (401 from /auth/refresh-token)
+    // This covers: "Refresh token expired", "Refresh token missing", "Invalid refresh token", etc.
     if (error.response?.status === 401 && isRefreshTokenEndpoint) {
-      console.error("Direct refresh token call failed:", error.response?.data?.message);
+      const errorMessage = error.response?.data?.message || "";
+      console.error("Refresh token failed:", errorMessage);
+
+      // Determine user-friendly message based on error type
+      let userMessage = "Your session has expired. Please login again.";
+      if (errorMessage.includes("missing")) {
+        userMessage = "Session not found. Please login again.";
+      } else if (errorMessage.includes("expired")) {
+        userMessage = "Your session has expired. Please login again.";
+      } else if (errorMessage.includes("Invalid") || errorMessage.includes("not matched")) {
+        userMessage = "Session invalid. Please login again.";
+      }
 
       // Show user-friendly message
       import('react-hot-toast').then(({ toast }) => {
-        toast.error("Your session has expired. Please login again.", { duration: 4000 });
+        toast.error(userMessage, { duration: 4000 });
       });
 
+      // Clear all auth data
       store.dispatch(clearUser());
       localStorage.removeItem("appStore");
 
-      // Small delay to ensure state is cleared
+      // Clear cookies as well (in case they're stale)
+      document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+
+      // Small delay to ensure state is cleared before redirect
       setTimeout(() => {
         window.location.href = "/";
       }, 100);
